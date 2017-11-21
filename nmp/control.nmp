@@ -1,0 +1,320 @@
+/*
+ *	MIPS IV Instruction Set
+ *
+ *	This file is part of GLISS
+ *	Copyright (c) 2016, IRIT UPS.
+ *
+ *	GLISS is free software; you can redistribute it and/or modify
+ *	it under the terms of the GNU General Public License as published by
+ *	the Free Software Foundation; either version 2 of the License, or
+ *	(at your option) any later version.
+ *
+ *	GLISS is distributed in the hope that it will be useful,
+ *	but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *	GNU General Public License for more details.
+ *
+ *	You should have received a copy of the GNU General Public License
+ *	along with GLISS; if not, write to the Free Software
+ *	Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ */
+
+// branches
+op all_branch =
+	  beq
+	| beql
+	| bgez
+	| bgezal
+	| bgezall
+	| bgezl
+	| bgtz
+	| bgtzl
+	| blez
+	| blezl
+	| bltz
+	| bltzl
+	| bltzal
+	| bltzall
+	| bne
+	| bnel
+	| j
+	| jal
+	| jalr
+	| jr
+
+
+// branch instructions
+op beq(rs: reg_t, rt: reg_t, offset: int(16))
+	syntax =
+		if rs == rt
+		then format("b %l", __IADDR + 4 + ((coerce(int(30), offset) :: 0<1..0>)))
+		else if rs == 0 || rt == 0
+		then format("beqz %l", __IADDR + 4 + ((coerce(int(30), offset) :: 0<1..0>)))
+		else format("beq %s, %s, %l", rs, rt, __IADDR + 4 + ((coerce(int(30), offset) :: 0<1..0>)))
+		endif endif
+	image = format("000100 %s %s %16b", rs, rt, offset)
+	action = {
+		let tgt_offset = coerce(int(30), offset) :: 0<1..0>;
+		let condition = rs == rt;
+		if condition then
+			NPC = NPC + tgt_offset;
+		endif;
+	}
+
+op beql(rs: reg_t, rt: reg_t, offset: int(16))
+	syntax =
+		if rs == rt
+		then format("bl %l", __IADDR + 4 + ((coerce(int(30), offset) :: 0<1..0>)))
+		else if rs == 0 || rt == 0
+		then format("beqlz %l", __IADDR + 4 + ((coerce(int(30), offset) :: 0<1..0>)))
+		else format("beql %s, %s, %l", rs, rt, __IADDR + 4 + ((coerce(int(30), offset) :: 0<1..0>)))
+		endif endif
+	image = format("010100 %s %s %16b", rs, rt, offset)
+	action = {
+		let tgt_offset = coerce(int(30), offset) :: 0<1..0>;
+		let condition = R[rs] == R[rt];
+		if condition then
+			NPC = NPC + tgt_offset;
+		else
+			NullifyCurrentInstruction();
+		endif;
+	}
+
+op bgez(rs: reg_t, offset: int(16))
+	syntax =
+		if rs == 0
+		then format("b %l", __IADDR + 4 + ((coerce(int(30), offset) :: 0<1..0>)))
+		else format("bgez %s, %l", rs, __IADDR + 4 + ((coerce(int(30), offset) :: 0<1..0>)))
+		endif
+	image = format("000001 %s 00001 %16b", rs, offset)
+	action = {
+		let tgt_offset = coerce(int(30), offset) :: 0<1..0>;
+		let condition = R[rs] >= 0;
+		if condition then
+			NPC = NPC + tgt_offset;
+		endif;
+	}
+
+op bgezal(rs: reg_t, offset: int(16))
+	syntax =
+		if rs == 0
+		then format("bal %l", __IADDR + 4 + ((coerce(int(30), offset) :: 0<1..0>)))
+		else format("bgezal %s, %l", rs, __IADDR + 4 + ((coerce(int(30), offset) :: 0<1..0>)))
+		endif
+	image = format("000001 %s 10001 %16b", rs, offset)
+	action = {
+		let tgt_offset = coerce(int(30), offset) :: 0<1..0>;
+		let condition = R[rs] >= 0;
+		R[31] = PC + 8;
+		if condition then
+			NPC = NPC + tgt_offset;
+		endif;
+	}
+
+op bgezall(rs: reg_t, offset: int(16))
+	syntax =
+		if rs == 0
+		then format("ball %l", __IADDR + 4 + ((coerce(int(30), offset) :: 0<1..0>)))
+		else format("bgezall %s, %l", rs, __IADDR + 4 + ((coerce(int(30), offset) :: 0<1..0>)))
+		endif
+	image = format("000001 %s 10011 %16b", rs, offset)
+	action = {
+		let tgt_offset = coerce(int(30), offset) :: 0<1..0>;
+		let condition = R[rs] >= 0;
+		R[31] = PC + 8;
+		if condition then
+			NPC = NPC + tgt_offset;
+		else
+			NullifyCurrentInstruction();
+		endif;
+	}
+
+op bgezl(rs: reg_t, offset: int(16))
+	syntax =
+		if rs == 0
+		then format("bl %l", __IADDR + 4 + ((coerce(int(30), offset) :: 0<1..0>)))
+		else format("bgezl %s, %l", rs, __IADDR + 4 + ((coerce(int(30), offset) :: 0<1..0>)))
+		endif
+	image = format("000001 %s 00011 %16b", rs, offset)
+	action = {
+		let tgt_offset = coerce(int(30), offset) :: 0<1..0>;
+		let condition = R[rs] >= 0;
+		if condition then
+			NPC = NPC + tgt_offset;
+		else
+			NullifyCurrentInstruction();
+		endif;
+	}
+
+op bgtz(rs: reg_t, offset: int(16))
+	syntax = format("bgtz %s, %l", rs, __IADDR + 4 + ((coerce(int(30), offset) :: 0<1..0>)))
+	image = format("000111 %s 00000 %16b", rs, offset)
+	action = {
+		let tgt_offset = coerce(int(30), offset) :: 0<1..0>;
+		let condition = R[rs] > 0;
+		if condition then
+			NPC = NPC + tgt_offset;
+		endif;
+	}
+
+op bgtzl(rs: reg_t, offset: int(16))
+	syntax = format("bgtzl %s, %l", rs, __IADDR + 4 + ((coerce(int(30), offset) :: 0<1..0>)))
+	image = format("010111 %s 00000 %16b", rs, offset)
+	action = {
+		let tgt_offset = coerce(int(30), offset) :: 0<1..0>;
+		let condition = R[rs] <= 0;
+		if condition then
+			NPC = NPC + tgt_offset;
+		else
+			NullifyCurrentInstruction();
+		endif;
+	}
+
+op blez(rs: reg_t, offset: int(16))
+	syntax =
+		if rs == 0
+		then format("b %l", __IADDR + 4 + ((coerce(int(30), offset) :: 0<1..0>)))
+		else format("blez %s, %l", rs, __IADDR + 4 + ((coerce(int(30), offset) :: 0<1..0>)))
+		endif
+	image = format("000110 %s 00000 %16b", rs, offset)
+	action = {
+		let tgt_offset = coerce(int(30), offset) :: 0<1..0>;
+		let condition = R[rs] > 0;
+		if condition then
+			NPC = NPC + tgt_offset;
+		endif;
+	}
+
+op blezl(rs: reg_t, offset: int(16))
+	syntax =
+		if rs == 0
+		then format("bl %l", __IADDR + 4 + ((coerce(int(30), offset) :: 0<1..0>)))
+		else format("blezl %s, %l", rs, __IADDR + 4 + ((coerce(int(30), offset) :: 0<1..0>)))
+		endif
+	image = format("010110 %s 00000 %16b", rs, offset)
+	action = {
+		let tgt_offset = coerce(int(30), offset) :: 0<1..0>;
+		let condition = R[rs] <= 0;
+		if condition then
+			NPC = NPC + tgt_offset;
+		else
+			NullifyCurrentInstruction();
+		endif;
+	}
+
+op bltz(rs: reg_t, offset: int(16))
+	syntax = format("bltz %s, %l", rs, __IADDR + 4 + ((coerce(int(30), offset) :: 0<1..0>)))
+	image = format("000001 %s 00000 %16b", rs, offset)
+	action = {
+		let tgt_offset = coerce(int(30), offset) :: 0<1..0>;
+		let condition = R[rs] < 0;
+		if condition then
+			NPC = NPC + tgt_offset;
+		endif;
+	}
+
+op bltzl(rs: reg_t, offset: int(16))
+	syntax = format("bltzl %s, %l", rs, __IADDR + 4 + ((coerce(int(30), offset) :: 0<1..0>)))
+	image = format("000001 %s 00010 %16b", rs, offset)
+	action = {
+		let tgt_offset = coerce(int(30), offset) :: 0<1..0>;
+		let condition = R[rs] < 0;
+		if condition then
+			NPC = NPC + tgt_offset;
+		else
+			NullifyCurrentInstruction();
+		endif;
+	}
+
+op bltzal(rs: reg_t, offset: int(16))
+	syntax = format("bltzal %s, %l", rs, __IADDR + 4 + ((coerce(int(30), offset) :: 0<1..0>)))
+	image = format("000001 %s 10000 %16b", rs, offset)
+	action = {
+		let tgt_offset = coerce(int(30), offset) :: 0<1..0>;
+		let condition = R[rs] < 0;
+		R[31] = PC + 8;
+		if condition then
+			NPC = NPC + tgt_offset;
+		endif;
+	}
+
+op bltzall(rs: reg_t, offset: int(16))
+	syntax = format("bltzall %s, %l", rs, __IADDR + 4 + ((coerce(int(30), offset) :: 0<1..0>)))
+	image = format("000001 %s 10010 %16b", rs, offset)
+	action = {
+		let tgt_offset = coerce(int(30), offset) :: 0<1..0>;
+		let condition = R[rs] < 0;
+		R[31] = PC + 8;
+		if condition then
+			NPC = NPC + tgt_offset;
+		else
+			NullifyCurrentInstruction();
+		endif;
+	}
+
+op bne(rs: reg_t, rt: reg_t, offset: int(16))
+	syntax =
+		if rs == 0 || rt == 0
+		then format("bnez %l", __IADDR + 4 + ((coerce(int(30), offset) :: 0<1..0>)))
+		else format("bne %s, %s, %l", rs, rt, __IADDR + 4 + ((coerce(int(30), offset) :: 0<1..0>)))
+		endif
+	image = format("000101 %s %s %16b", rs, rt, offset)
+	action = {
+		let tgt_offset = coerce(int(30), offset) :: 0<1..0>;
+		let condition = R[rs] == R[rt];
+		if condition then
+			NPC = NPC + tgt_offset;
+		endif;
+	}
+
+op bnel(rs: reg_t, rt: reg_t, offset: int(16))
+	syntax =
+		if rs == 0 || rt == 0
+		then format("bnelz %l", __IADDR + 4 + ((coerce(int(30), offset) :: 0<1..0>)))
+		else format("bnel %s, %s, %l", rs, rt, __IADDR + 4 + ((coerce(int(30), offset) :: 0<1..0>)))
+		endif
+	image = format("010101 %s %s %16b", rs, rt, offset)
+	action = {
+		let tgt_offset = coerce(int(30), offset) :: 0<1..0>;
+		let condition = R[rs] == R[rt];
+		if condition then
+			NPC = NPC + tgt_offset;
+		else
+			NullifyCurrentInstruction();
+		endif;
+	}
+
+op j(instr_index: card(26))
+	syntax = format("j %l", __IADDR<63..28> :: instr_index :: 0<1..0>)
+	image = format("000010 %26b", instr_index)
+	action = {
+		NPC = NPC<63..28> :: instr_index :: 0<1..0>;
+	}
+
+op jal(instr_index: card(26))
+	syntax = format("jal %l", __IADDR<63..28> :: instr_index :: 0<1..0>)
+	image = format("000011 %26b", instr_index)
+	action = {
+		R[31] = PC + 8;
+		NPC = NPC<63..28> :: instr_index :: 0<1..0>;
+	}
+
+op jalr(rs: reg_t, rd: reg_t)
+	syntax = format("jalr %s, %s", rd, rs)
+	image = format("000000 %s 00000 %s 00000 001001", rs, rd)
+	action = {
+		let temp = R[rs];
+		setR(rd, PC + 8);
+		NPC = temp;
+	}
+
+op jr(rs: reg_t)
+	syntax = format("jr %s", rs)
+	image = format("000000 %s 00000 00000 00000 001000", rs)
+	action = {
+		let temp = R[rs];
+		NPC = temp;
+	}
+
+
+

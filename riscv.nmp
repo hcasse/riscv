@@ -1,0 +1,113 @@
+/*
+ *	MIPS IV Instruction Set
+ *
+ *	This file is part of GLISS
+ *	Copyright (c) 2016, IRIT UPS.
+ *
+ *	GLISS is free software; you can redistribute it and/or modify
+ *	it under the terms of the GNU General Public License as published by
+ *	the Free Software Foundation; either version 2 of the License, or
+ *	(at your option) any later version.
+ *
+ *	GLISS is distributed in the hope that it will be useful,
+ *	but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *	GNU General Public License for more details.
+ *
+ *	You should have received a copy of the GNU General Public License
+ *	along with GLISS; if not, write to the Free Software
+ *	Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ */
+
+include "nmp/config.nmp"
+include "nmp/state.nmp"
+include "nmp/macros.nmp"
+
+// GLISS configuration
+let proc = "riscv"         
+let bit_order = "uppermost"
+let gliss_isize = "32"
+//let bit_image_order =  1
+
+
+// modes
+mode reg_t (r: index) = r
+	num = r
+	syntax =
+		switch ( r ) {
+		case  0:	"zero"
+		case  1:	"at"
+		case  2: 	"v0"
+		case  3: 	"v1"
+		case  4: 	"a0"
+		case  5: 	"a1"
+		case  6: 	"a2"
+		case  7: 	"a3"
+		case  8:	"t0"
+		case  9:	"t1"
+		case 10:	"t2"
+		case 11:	"t3"
+		case 12:	"t4"
+		case 13:	"t5"
+		case 14:	"t6"
+		case 15:	"t7"
+		case 16:	"s0"
+		case 17:	"s1"
+		case 18:	"s2"
+		case 19:	"s3"
+		case 20:	"s4"
+		case 21:	"s5"
+		case 22:	"s6"
+		case 23:	"s7"
+		case 24:	"t8"
+		case 25:	"t9"
+		case 26:	"k0"
+		case 27:	"k1"
+		case 28:	"gp"
+		case 29:	"sp"
+		case 30:	"fp"
+		case 31:	"ra"
+		}
+	image  = format ( "%5b", r )
+macro setR(d, v) = if d != 0 then R[d] = v; endif 
+
+mode IMM16(n: half) = n
+	syntax = format("#%d", n)
+	image = format("%16b", n)
+
+mode UIMM16(n: uhalf) = n
+   syntax = format ( "#%d", n )
+   image  = format ( "%16b", n )
+
+
+
+// top-level instructions
+op instruction (x: allinstr)
+	syntax = x.syntax
+	image = x.image
+	action = {
+		NPC = PC + 4;
+		x.action;
+		PC = NPC;
+	}
+
+op allinstr =
+	  all_rrr
+	| all_rri
+	| all_alu
+	| all_branch
+	| all_special
+	| all_muldiv
+	| all_dshift
+	| all_load
+	| all_stores
+
+op init ()
+	action = {
+		R[0] = 0;
+	}
+
+include "nmp/alu.nmp"
+include "nmp/control.nmp"
+include "nmp/special.nmp"
+include "nmp/mem.nmp"

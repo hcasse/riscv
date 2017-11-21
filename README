@@ -1,0 +1,206 @@
+  This GLISS ISA supports MIPS IV, 32-bits architecture.
+
+====== Installation =====
+
+GLISS2 must be available as a sibling directory:
+<code sh>
+cd ..
+hg clone https://wwwwsecu.irit.fr/hg/TRACES/gliss2/trunk gliss2
+cd gliss2
+make
+cd ../mips
+</code>
+
+Then, you have just to build ISS, disassembler and libraries with:
+<code sh>
+make
+</code>
+
+That's it.
+
+
+====== Implementation Status ======
+
+172 instructions, 70 fully implemented, 0 only interface
+
+Notation:
+* [ ] -- not implemented
+* [I] -- ony interface implemented
+* [X] -- fully implemented
+
+
+[ ] abs_fmt
+[X] add
+[ ] add_fmt
+[X] addi
+[X] addiu
+[X] addu
+[X] and
+[X] andi
+[ ] bc1f
+[ ] bc1fl
+[ ] bc1t
+[ ] bc1tl
+[ ] bc2f
+[ ] bc2fl
+[ ] bc2t
+[ ] bc2tl
+[X] beq
+[X] beql
+[X] bgez
+[X] bgezal
+[X] bgezall
+[X] bgezl
+[X] bgtz
+[X] bgtzl
+[X] blez
+[X] blezl
+[X] bltz
+[X] bltzl
+[X] bltzal
+[X] bltzall
+[X] bne
+[X] bnel
+[X] break
+[ ] c_cond_fmt
+[ ] ceil_l_fmt
+[ ] ceil_w_fmt
+[ ] cfc1
+[X] copz
+[ ] ctc1
+[ ] cvt_d_fmt
+[ ] cvt_l_fmt
+[ ] cvt_s_fmt
+[ ] cvt_w_fmt
+[X] dadd
+[X] daddi
+[X] daddiu
+[X] daddu
+[X] ddiv
+[X] ddivu
+[X] div
+[ ] div_fmt
+[X] divu
+[ ] dmfc1
+[ ] dmtc1
+[X] dmult
+[X] dmultu
+[X] dsll
+[X] dsll32
+[X] dsllv
+[X] dsra
+[X] dsra32
+[X] dsrav
+[X] dsrl
+[X] dsrl32
+[X] dsrlv
+[X] dsub
+[X] dsubu
+[ ] floor_l_fmt
+[ ] floor_w_fmt
+[X] j
+[X] jal
+[X] jalr
+[X] jr
+[X] lb
+[X] lbu
+[X] ld
+[ ] ldc1
+[X] ldcz
+[X] ldl
+[X] ldr
+[ ] ldxc1
+[X] lh
+[X] lhu
+[X] ll
+[X] lld
+[X] lui
+[X] lw
+[ ] lwc1
+[X] lwcz
+[ ] lwxc1
+[X] lwl
+[X] lwr
+[ ] madd_fmt
+[ ] mfc1
+[X] mfhi
+[ ] mflo
+[ ] mov_fmt
+[ ] movf
+[ ] movf_fmt
+[X] movn
+[ ] movn_fmt
+[ ] movt
+[ ] movt_fmt
+[X] movz
+[ ] movz_fmt
+[ ] msub_fmt
+[ ] mtc1
+[X] mthi
+[X] mtlo
+[ ] mul_fmt
+[X] mult
+[X] multu
+[ ] neg_fmt
+[ ] nmadd_fmt
+[ ] nmsub_fmt
+[X] nor_rrr
+[X] or_rrr
+[X] ori
+[X] pref
+[ ] prefx
+[ ] recip_fmt
+[ ] round_l_fmt
+[ ] round_w_fmt
+[ ] rsqrt_fmt
+[X] sb
+[X] sc
+[ ] sdc1
+[X] sdcz
+[ ] sdxc1
+[X] sh
+[X] sll
+[X] sllv_rrr
+[X] slt_rrr
+[X] slti
+[X] sltiu
+[X] sltu_rrr
+[ ] sqrt_fmt
+[X] sra
+[X] srav
+[X] srl
+[X] srlv
+[X] sub
+[ ] sub_fmt
+[X] subu
+[X] sw
+[ ] swc1
+[X] swcz
+[X] swl
+[X] swr
+[ ] swxc1
+[X] sync
+[X] syscall
+[X] teq
+[X] teqi
+[X] tge
+[X] tgei
+[X] tgeiu
+[X] tgeu
+[X] tlt
+[X] tlti
+[X] tltiu
+[X] tltu
+[X] tne
+[X] tnei
+[ ] trunc_l_fmt
+[ ] trunc_w_fmt
+[ ] xor
+[ ] xori
+
+Instructions working only in 64-bits and therefore not supported:
+[ ] lwu
+[ ] scd
+[ ] sd
+[ ] sdl
+[ ] sdr

@@ -1,0 +1,302 @@
+/*
+ *	MIPS IV Instruction Set
+ *
+ *	This file is part of GLISS
+ *	Copyright (c) 2016, IRIT UPS.
+ *
+ *	GLISS is free software; you can redistribute it and/or modify
+ *	it under the terms of the GNU General Public License as published by
+ *	the Free Software Foundation; either version 2 of the License, or
+ *	(at your option) any later version.
+ *
+ *	GLISS is distributed in the hope that it will be useful,
+ *	but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *	GNU General Public License for more details.
+ *
+ *	You should have received a copy of the GNU General Public License
+ *	along with GLISS; if not, write to the Free Software
+ *	Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ */
+
+op all_load =
+	  lb
+	| lbu
+	| ld
+	| ldcz
+	| ldl
+	| ldr
+	| lh
+	| lhu
+	| ll
+	| lld
+	| lw
+	| lwcz
+	| lwl
+	| lwr
+
+// load instruction
+op lb(base: reg_t, rt: reg_t, offset: int(16))
+	syntax = format("lb %s, %d(%s)", rt, offset, base)
+	image  = format("100000 %s %s %16b", base, rt, offset)
+	action = {
+		let vAddr = R[base] + offset;
+		setR(rt, M[vAddr]);
+	}
+
+op lbu(base: reg_t, rt: reg_t, offset: int(16))
+	syntax = format("lbu %s, %d(%s)", rt, offset, base)
+	image  = format("100100 %s %s %16b", base, rt, offset)
+	action = {
+		let vAddr = R[base] + offset;
+		setR(rt, coerce(duword, M[vAddr]));
+	}
+
+op ld(base: reg_t, rt: reg_t, offset: int(16))
+	syntax = format("ld %s, %d(%s)", rt, offset, base)
+	image  = format("110111 %s %s %16b", base, rt, offset)
+	action = {
+		let vAddr = R[base] + offset;
+		if vAddr<2..0> != 0 then
+			SignalException(AddressError);
+		endif;
+		setR(rt, coerce(duword, M64[vAddr]));
+	}
+
+op ldcz(z: enum(1, 2), base: reg_t, rt: reg_t, offset: int(16))
+	syntax = format("ldc%d %s, %d(%s)", z, rt, offset, base)
+	image  = format("1101%2b %s %s %16b", z, base, rt, offset)
+	action = {
+		let vAddr = offset + R[base];
+		if vAddr<2..0> != 0 then SignalException(AddressError); endif;
+		let memdouble = M64[vAddr];
+		COP_LD(z, rt, memdouble);
+	}
+
+op ldl(base: reg_t, rt: reg_t, offset: int(16))
+	syntax = format("ldl %s, %d(%s)", rt, offset, base)
+	image  = format("011010 %s %s %16b", base, rt, offset)
+	action = {
+		let vAddr = offset + R[base];
+		let memdouble = M64[vAddr];
+		let _byte = base<2..0>;
+		setR(rt, memdouble<7+8*_byte..0> | R[rt]<55-8*_byte..0>);
+	}
+
+op ldr(base: reg_t, rt: reg_t, offset: int(16))
+	syntax = format("ldr %s, %d(%s)", rt, offset, base)
+	image  = format("011011 %s %s %16b", base, rt, offset)
+	action = {
+		let vAddr = offset + R[base];
+		let memdouble = M64[vAddr];
+		let _byte = base<2..0>;
+		setR(rt, memdouble<63..64-8*_byte> | R[rt]<63..8*_byte>);
+	}
+
+op lh(base: reg_t, rt: reg_t, offset: int(16))
+	syntax = format("lh %s, %d(%s)", rt, offset, base)
+	image  = format("100001 %s %s %16b", base, rt, offset)
+	action = {
+		let vAddr = offset + R[base];
+		let memdouble = M64[vAddr];
+		setR(rt, M16[vAddr]);
+	}
+
+op lhu(base: reg_t, rt: reg_t, offset: int(16))
+	syntax = format("lhu %s, %d(%s)", rt, offset, base)
+	image  = format("100101 %s %s %16b", base, rt, offset)
+	action = {
+		let vAddr = offset + R[base];
+		let memdouble = M64[vAddr];
+		setR(rt, coerce(duword, M16[vAddr]));
+	}
+
+op ll(base: reg_t, rt: reg_t, offset: int(16))
+	syntax = format("ll %s, %d(%s)", rt, offset, base)
+	image  = format("110000 %s %s %16b", base, rt, offset)
+	action = {
+		let vAddr = offset + R[base];
+		let memdouble = M64[vAddr];
+		let _byte = vAddr<2..0>;
+		let memdouble = M32[vAddr];
+		setR(rt, (coerce(dword, memdouble)<31+8*_byte..8*_byte> << (32-8*_byte))>>(32-8*_byte));
+	}
+
+op lld(base: reg_t, rt: reg_t, offset: int(16))
+	syntax = format("lld %s, %d(%s)", rt, offset, base)
+	image  = format("110100 %s %s %16b", base, rt, offset)
+	action = {
+		let vAddr = offset + R[base];
+		if vAddr<2..0> != 0 then SignalException(AddressError); endif;
+		let memdouble = M64[vAddr];
+		setR(rt, memdouble);
+		LLbit = 1;
+	}
+
+op lw(base: reg_t, rt: reg_t, offset: int(16))
+	syntax = format("lw %s, %d(%s)", rt, offset, base)
+	image  = format("100011 %s %s %16b", base, rt, offset)
+	action = {
+		let vAddr = offset + R[base];
+		if vAddr<1..0> != 0 then SignalException(AddressError); endif;
+		let memword = M32[vAddr];
+		setR(rt, memword);
+	}
+
+op lwcz(z: enum(1, 2), base: reg_t, rt: reg_t, offset: int(16))
+	syntax = format("lwc%d %s, %d(%s)", z, rt, offset, base)
+	image  = format("1100%2b %s %s %16b", z, base, rt, offset)
+	action = {
+		let vAddr = offset + R[base];
+		if vAddr<1..0> != 0 then SignalException(AddressError); endif;
+		let memword = M32[vAddr];
+		COP_LW(z, rt, memword);
+	}
+
+op lwl(base: reg_t, rt: reg_t, offset: int(16))
+	syntax = format("lwl %s, %d(%s)", rt, offset, base)
+	image  = format("100010 %s %s %16b", base, rt, offset)
+	action = {
+		let vAddr = offset + R[base];
+		AddressTranslation(pAddr, uncached, vAddr, DATA, LOAD);
+		pAddr = pAddr<31..2> :: (pAddr<1..0> ^ (ReverseEndian :: ReverseEndian));
+		if BigEndianMem == 0 then
+			pAddr = pAddr<31..2> :: 0<1..0>;
+		endif;
+		let _byte = vAddr<1..0> ^ (BigEndianCPU :: BigEndianCPU);
+		let memword = LoadMemoryBYTE(uncached, pAddr, vAddr, DATA);
+		R[rt] = (memword<7+8*_byte..0> << (24-8*_byte)) | R[rt]<23-8*_byte..0>;
+	}
+
+op lwr(base: reg_t, rt: reg_t, offset: int(16))
+	syntax = format("lwr %s, %d(%s)", rt, offset, base)
+	image  = format("100110 %s %s %16b", base, rt, offset)
+	action = {
+		let vAddr = offset + R[base];
+		AddressTranslation(pAddr, uncached, vAddr, DATA, LOAD);
+		pAddr = pAddr<31..2> :: (pAddr<1..0> ^ (ReverseEndian :: ReverseEndian));
+		if BigEndianMem == 0 then
+			pAddr = pAddr<31..2> :: 0<1..0>;
+		endif;
+		let _byte = vAddr<1..0> ^ (BigEndianCPU :: BigEndianCPU);
+		let memword = LoadMemoryBYTE(uncached, pAddr, vAddr, DATA);
+		R[rt] = (memword<31..32-8*_byte> << (32-8*_byte)) | R[rt]<31-8*_byte..0>;
+	}
+
+
+// store instruction
+op all_stores =
+	  sb
+	| sc
+	| sdcz
+	| sh
+	| sw
+	| swcz
+	| swl
+	| swr
+
+op sb(base: reg_t, rt: reg_t, offset: int(16))
+	syntax = format("sb %s, %d(%s)", rt, offset, base)
+	image  = format("101000 %s %s %16b", base, rt, offset)
+	action = {
+		let vAddr = offset + R[base];
+		AddressTranslation(pAddr, uncached, vAddr, DATA, STORE);
+		pAddr = pAddr<31..2> :: (pAddr<1..0> ^ (ReverseEndian :: ReverseEndian));
+		let byte = vAddr<1..0> ^ (BigEndianCPU :: BigEndianCPU);
+		let dataword = R[rt];
+		StoreMemoryBYTE(uncached, dataword, pAddr + 8*byte, vAddr);
+	}
+
+op sc(base: reg_t, rt: reg_t, offset: int(16))
+	syntax = format("sc %s, %d(%s)", rt, offset, base)
+	image  = format("111000 %s %s %16b", base, rt, offset)
+	action = {
+		let vAddr = offset + R[base];
+		if vAddr<1..0> != 0 then SignalException(AddressError); endif;
+		AddressTranslation(pAddr, uncached, vAddr, DATA, STORE);		
+		let dataword = R[rt];
+		if LLbit then
+			StoreMemoryWORD(uncached, dataword, pAddr, vAddr);
+		endif;
+		R[rt] = 0<31..1> :: LLbit;
+	}
+
+op sdcz(z: enum(1, 2), base: reg_t, rt: reg_t, offset: int(16))
+	syntax = format("sdc%d %s, %d(%s)", z, rt, offset, base)
+	image  = format("1111%2b %s %s %16b", z, base, rt, offset)
+	action = {
+		let vAddr = offset + R[base];
+		if vAddr<2..0> != 0 then SignalException(AddressError); endif;
+		AddressTranslation(pAddr, uncached, vAddr, DATA, STORE);
+		let datadouble = COP_SD(z, rt);
+		StoreMemoryDOUBLEWORD(uncached, datadouble, pAddr, vAddr);
+	}
+
+op sh(base: reg_t, rt: reg_t, offset: int(16))
+	syntax = format("sh %s, %d(%s)", rt, offset, base)
+	image  = format("101001 %s %s %16b", base, rt, offset)
+	action = {
+		let vAddr = offset + R[base];
+		if vAddr<0..0> != 0 then SignalException(AddressError); endif;
+		AddressTranslation(pAddr, uncached, vAddr, DATA, STORE);
+		let dataword = R[rt];
+		StoreMemoryHALFWORD(uncached, dataword, pAddr, vAddr);
+	}
+
+op sw(base: reg_t, rt: reg_t, offset: int(16))
+	syntax = format("sw %s, %d(%s)", rt, offset, base)
+	image  = format("101011 %s %s %16b", base, rt, offset)
+	action = {
+		let vAddr = offset + R[base];
+		if vAddr<1..0> != 0 then SignalException(AddressError); endif;
+		AddressTranslation(pAddr, uncached, vAddr, DATA, STORE);
+		let dataword = R[rt];
+		StoreMemoryWORD(uncached, dataword, pAddr, vAddr);
+	}
+
+op swcz(z: enum(1, 2, 3), base: reg_t, rt: reg_t, offset: int(16))
+	syntax = format("swc%d %s, %d(%s)", z, rt, offset, base)
+	image  = format("1110%2b %s %s %16b", z, base, rt, offset)
+	action = {
+		let vAddr = offset + R[base];
+		if vAddr<1..0> != 0 then SignalException(AddressError); endif;
+		AddressTranslation(pAddr, uncached, vAddr, DATA, STORE);
+		let dataword = COP_SW(z, rt);
+		StoreMemoryWORD(uncached, dataword, pAddr, vAddr);
+	}
+
+op swl(base: reg_t, rt: reg_t, offset: int(16))
+	syntax = format("swl %s, %d(%s)", rt, offset, base)
+	image  = format("101010 %s %s %16b", base, rt, offset)
+	action = {
+		let vAddr = offset + R[base];
+		AddressTranslation(pAddr, uncached, vAddr, DATA, STORE);
+		if BigEndianMem == 0 then
+			pAddr = pAddr<31..2> :: 0<1..0>;
+		endif;
+		let byte = vAddr<1..0> ^ (BigEndianCPU :: BigEndianCPU);
+		let dataword = coerce(card(32), R[rt])<31..24-8*byte>;
+		// !!WARNING!! I will be surprised if it works as is!
+		StoreMemoryBYTE(uncached, dataword, pAddr, vAddr);
+		if byte >= 1 then StoreMemoryBYTE(uncached, dataword<15..8>, pAddr + 1, vAddr + 1); endif;
+		if byte >= 2 then StoreMemoryBYTE(uncached, dataword<24..16>, pAddr + 2, vAddr + 2); endif;
+		if byte >= 3 then StoreMemoryBYTE(uncached, dataword<31..24>, pAddr + 3, vAddr + 3); endif;
+	}
+
+op swr(base: reg_t, rt: reg_t, offset: int(16))
+	syntax = format("swr %s, %d(%s)", rt, offset, base)
+	image  = format("101110 %s %s %16b", base, rt, offset)
+	action = {
+		let vAddr = offset + R[base];
+		AddressTranslation(pAddr, uncached, vAddr, DATA, STORE);
+		if BigEndianMem == 0 then
+			pAddr = pAddr<31..2> :: 0<1..0>;
+		endif;
+		let byte = vAddr<1..0> ^ (BigEndianCPU :: BigEndianCPU);
+		let dataword = coerce(card(32), R[rt])<31-24-8*byte..0> << (8*byte);
+		// !!WARNING!! I will be surprised if it works as is!
+		StoreMemoryBYTE(uncached, dataword, pAddr, vAddr);
+		if byte >= 1 then StoreMemoryBYTE(uncached, dataword<15..8>, pAddr + 1, vAddr + 1); endif;
+		if byte >= 2 then StoreMemoryBYTE(uncached, dataword<24..16>, pAddr + 2, vAddr + 2); endif;
+		if byte >= 3 then StoreMemoryBYTE(uncached, dataword<31..24>, pAddr + 3, vAddr + 3); endif;
+	}

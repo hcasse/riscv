@@ -1,0 +1,77 @@
+/*
+ *	MIPS IV Instruction Set
+ *
+ *	This file is part of GLISS
+ *	Copyright (c) 2016, IRIT UPS.
+ *
+ *	GLISS is free software; you can redistribute it and/or modify
+ *	it under the terms of the GNU General Public License as published by
+ *	the Free Software Foundation; either version 2 of the License, or
+ *	(at your option) any later version.
+ *
+ *	GLISS is distributed in the hope that it will be useful,
+ *	but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *	GNU General Public License for more details.
+ *
+ *	You should have received a copy of the GNU General Public License
+ *	along with GLISS; if not, write to the Free Software
+ *	Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ */
+
+// emulation canonicals
+canon "SignalException"(e: word)
+canon "Prefetch"(uncached: bool, pAddr: address, vAddr: address, IorD: bool, hint: card(5))
+canon duword "COP_SD"(z: card(2), rt: card(4))
+canon uword "COP_SW"(z: card(2), rt: card(4))
+canon "SyncOperation"(stype: card(5))
+
+
+// macros
+macro _32_bit_arithmetic_overflow(d, t, s) = \
+	((~d & t & s) | (d & ~t & ~s))<31..31>
+macro _64_bit_arithmetic_overflow(d, t, s) = \
+	((~d & t & s) | (d & ~t & ~s))<63..63>
+
+macro NullifyCurrentInstruction() =
+macro NotWordValue(x) = 0
+macro UndefinedResult =
+
+let BreakPoint = 0
+let IntegerOverflow = 1
+let IntegerOverflow = 2
+let AddressError = 3
+let SystemCall = 4
+let Trap = 5
+macro SignalException(e) = "SignalException"(e)
+
+macro Prefetch(uncached, pAddr, vAddr, IorD, hint) = "Prefetch"(uncached, pAddr, vAddr, IorD, hint)
+macro SyncOperation(stype) = "SyncOperation"(stype)
+
+macro CoprocessorOperation(z, cop_fun) =
+macro COP_LD(z, rt, memdouble) =
+macro COP_LW(z, rt, memword) =
+macro COP_SD(z, rt) = "COP_SD"(z, rt)
+macro COP_SW(z, rt) = "COP_SW"(z, rt)
+
+
+// macro for memory
+
+let INSTRUCTION = 0
+let DATA = 1
+let LOAD = 0
+let STORE = 1
+
+macro AddressTranslation(pAddr, CCA, vAddr, IorD, LorS) = \
+	let CCA = 0; \
+	let pAddr = vAddr
+
+macro LoadMemoryBYTE(CCA, pAddr, vAddr, IorD) = M[pAddr]
+macro LoadMemoryHALFWORD(CCA, pAddr, vAddr, IorD) = M16[pAddr]
+macro LoadMemoryWORD(CCA, pAddr, vAddr, IorD) = M32[pAddr]
+macro LoadMemoryDOUBLEWORD(CCA, pAddr, vAddr, IorD) = M64[pAddr]
+
+macro StoreMemoryBYTE(CCA, MemElem, pAddr, vAddr) = M[pAddr] = MemElem
+macro StoreMemoryHALFWORD(CCA, MemElem, pAddr, vAddr) = M16[pAddr] = MemElem
+macro StoreMemoryWORD(CCA, MemElem, pAddr, vAddr) = M32[pAddr] = MemElem
+macro StoreMemoryDOUBLEWORD(CCA, MemElem, pAddr, vAddr) = M64[pAddr] = MemElem

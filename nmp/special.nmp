@@ -1,0 +1,190 @@
+/*
+ *	MIPS IV Instruction Set
+ *
+ *	This file is part of GLISS
+ *	Copyright (c) 2016, IRIT UPS.
+ *
+ *	GLISS is free software; you can redistribute it and/or modify
+ *	it under the terms of the GNU General Public License as published by
+ *	the Free Software Foundation; either version 2 of the License, or
+ *	(at your option) any later version.
+ *
+ *	GLISS is distributed in the hope that it will be useful,
+ *	but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *	GNU General Public License for more details.
+ *
+ *	You should have received a copy of the GNU General Public License
+ *	along with GLISS; if not, write to the Free Software
+ *	Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ */
+
+op all_special =
+	  break
+	| copz
+	| pref
+	| sync
+	| syscall
+	| teq
+	| teqi
+	| tge
+	| tgei
+	| tgeiu
+	| tgeu
+	| tlt
+	| tlti
+	| tltiu
+	| tltu
+	| tne
+	| tnei
+
+
+// special instruction
+op break(code: card(20))
+	syntax = format("break %d", code)
+	image = format("000000 %20b 001101", code)
+	action = {
+		SignalException(BreakPoint);
+	}
+
+op copz(z: card(2), cop_fun: card(26))
+	syntax = format("cop%d %d", z, cop_fun)
+	image = format("0100 %2b %26b", z, cop_fun)
+	action = {
+		CoprocessorOperation(z, cop_fun);
+	}
+
+
+op pref(base: reg_t, hint: card(5), offset: int(16))
+	syntax = format("pref %d, %d(%s)", hint, offset, base)
+	image = format("110011 %s %5b %16b", base, hint, offset)
+	action = {
+		let vAddr = R[base] + offset;
+		AddressTranslation(pAddr, uncached, vAddr, DATA, LOAD);
+		Prefetch(uncached, pAddr, vAddr, DATA, hint);
+	}
+
+op sync(stype: card(5))
+	syntax = "sync"
+	image  = format("000000 000000000000000 %5b 001111", stype)
+	action = {
+		SyncOperation(stype);
+	}
+
+op syscall(code: card(20))
+	syntax = format("syscall %d", code)
+	image  = format("000000 %20b 001100", code)
+	action = {
+		SignalException(SystemCall);
+	}
+
+op teq(rs: reg_t, rt: reg_t, code: card(10))
+	syntax = format("teq %s, %s", rs, rt)
+	image  = format("000000 %s %s %10b 110100", rs, rt, code)
+	action = {
+		if R[rs] == R[rt] then
+			SignalException(Trap);
+		endif;
+	}
+
+op teqi(rs: reg_t, immediate: int(16))
+	syntax = format("teqi %s, %d", rs, immediate)
+	image  = format("000001 %s 01100 %16b", rs, immediate)
+	action = {
+		if R[rs] == immediate then
+			SignalException(Trap);
+		endif;
+	}
+
+op tge(rs: reg_t, rt: reg_t, code: card(10))
+	syntax = format("tge %s, %s", rs, rt)
+	image  = format("000000 %s %s %10b 110000", rs, rt, code)
+	action = {
+		if R[rs] >= R[rt] then
+			SignalException(Trap);
+		endif;
+	}
+
+op tgei(rs: reg_t, immediate: int(16))
+	syntax = format("tgei %s, %d", rs, immediate)
+	image  = format("000001 %s 01000 %16b", rs, immediate)
+	action = {
+		if R[rs] >= immediate then
+			SignalException(Trap);
+		endif;
+	}
+
+op tgeiu(rs: reg_t, immediate: card(16))
+	syntax = format("tgeiu %s, %d", rs, immediate)
+	image  = format("000001 %s 01001 %16b", rs, immediate)
+	action = {
+		if coerce(card(32), R[rs]) >= immediate then
+			SignalException(Trap);
+		endif;
+	}
+
+op tgeu(rs: reg_t, rt: reg_t, code: card(10))
+	syntax = format("tgeu %s, %s", rs, rt)
+	image  = format("000000 %s %s %10b 110001", rs, rt, code)
+	action = {
+		if coerce(card(32), R[rs]) >= coerce(card(32), R[rt]) then
+			SignalException(Trap);
+		endif;
+	}
+
+
+
+op tlt(rs: reg_t, rt: reg_t, code: card(10))
+	syntax = format("tlt %s, %s", rs, rt)
+	image  = format("000000 %s %s %10b 110010", rs, rt, code)
+	action = {
+		if R[rs] < R[rt] then
+			SignalException(Trap);
+		endif;
+	}
+
+op tlti(rs: reg_t, immediate: int(16))
+	syntax = format("tlti %s, %d", rs, immediate)
+	image  = format("000001 %s 01010 %16b", rs, immediate)
+	action = {
+		if R[rs] < immediate then
+			SignalException(Trap);
+		endif;
+	}
+
+op tltiu(rs: reg_t, immediate: card(16))
+	syntax = format("tltiu %s, %d", rs, immediate)
+	image  = format("000001 %s 01011 %16b", rs, immediate)
+	action = {
+		if coerce(card(32), R[rs]) < immediate then
+			SignalException(Trap);
+		endif;
+	}
+
+op tltu(rs: reg_t, rt: reg_t, code: card(10))
+	syntax = format("tltu %s, %s", rs, rt)
+	image  = format("000000 %s %s %10b 110011", rs, rt, code)
+	action = {
+		if coerce(card(32), R[rs]) < coerce(card(32), R[rt]) then
+			SignalException(Trap);
+		endif;
+	}
+
+op tne(rs: reg_t, rt: reg_t, code: card(10))
+	syntax = format("tne %s, %s", rs, rt)
+	image  = format("000000 %s %s %10b 110110", rs, rt, code)
+	action = {
+		if R[rs] != R[rt] then
+			SignalException(Trap);
+		endif;
+	}
+
+op tnei(rs: reg_t, immediate: int(16))
+	syntax = format("tnei %s, %d", rs, immediate)
+	image  = format("000001 %s 01110 %16b", rs, immediate)
+	action = {
+		if R[rs] != immediate then
+			SignalException(Trap);
+		endif;
+	}
+

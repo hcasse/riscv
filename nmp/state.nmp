@@ -1,0 +1,58 @@
+/*
+ *	MIPS IV Instruction Set
+ *
+ *	This file is part of GLISS
+ *	Copyright (c) 2016, IRIT UPS.
+ *
+ *	GLISS is free software; you can redistribute it and/or modify
+ *	it under the terms of the GNU General Public License as published by
+ *	the Free Software Foundation; either version 2 of the License, or
+ *	(at your option) any later version.
+ *
+ *	GLISS is distributed in the hope that it will be useful,
+ *	but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *	GNU General Public License for more details.
+ *
+ *	You should have received a copy of the GNU General Public License
+ *	along with GLISS; if not, write to the Free Software
+ *	Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ */
+
+// types
+type bit       = card( 1)
+type ubyte     = card( 8)
+type uhalf     = card(16)
+type uword     = card(32)
+type duword    = card(64)
+type byte      = int ( 8)
+type half      = int (16)
+type word      = int (32)
+type dword     = int (64)
+type address   = card(32)
+type index     = card( 5)
+
+
+// state
+mem M   [32,  byte]
+mem M16	[32,  half] alias = M
+mem M32	[32,  word] alias = M
+mem M64	[32, dword] alias = M
+
+reg PC  	[ 1, address] is_pc = 1
+reg NPC 	[ 1, address]
+reg R		[32, word]
+reg HI		[ 1, word]
+reg LO		[ 1, word]
+reg LLbit	[ 1, card(1)]
+
+
+// temporaries
+var TMP_D [1, dword]
+var TMP_S [1, dword]
+var TMP_T [1, dword]
+var TMP_I [1, dword]
+var TMP_US[1, duword]
+var TMP_UT[1, duword]
+
+
