@@ -44,12 +44,14 @@ op all_rri =
 	| srli
 	| xori
 
-// MIPS
-/*
+
+
 op all_alu =
 	  lui
 	| auipc
-	| mfhi
+
+// MIPS
+/*	| mfhi
 	| mflo
 	| mthi
 	| mtlo
@@ -357,13 +359,18 @@ op andi(imm: int(12), src: reg_t, dest: reg_t)
 	image = format("%12b %s 111 %s 0010011", imm, src, dest)
 	action = { setR(dest, R[src] & imm); }
 
+op lui(immediate: int(20), dest: reg_t)
+	syntax = format("lui %s, %d", dest, immediate)
+	image  = format("%20b %s 0110111", immediate, dest)
+	action = { setR(dest, coerce(dword, immediate) << 12); }
+
+op auipc(immediate: int(20), dest: reg_t)
+	syntax = format("auipc %s, %d", dest, immediate)
+	image  = format("%20b %s 0010111", immediate, dest)
+	action = { setR(dest, __IADDR + coerce(dword, immediate) << 12); }
+
 /*
-// MIPS
-op lui(rt: reg_t, immediate: int(16))
-	syntax = format("lui %s, %d", rt, immediate)
-	image  = format("001111 00000 %s %16b", rt, immediate)
-	action = { setR(rt, coerce(dword, immediate) << 16); }
-	
+// MIPS	
 op mfhi(rd: reg_t)
 	syntax = format("mfhi %s", rd)
 	image = format("000000 0000000000 %5b 00000 010000", rd)
