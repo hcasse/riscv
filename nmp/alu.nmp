@@ -86,7 +86,8 @@ op add(src2: reg_t, src1: reg_t, dest: reg_t)
 op addi(imm: int(12), src: reg_t, dest: reg_t)
 	syntax =
 		if dest == 0 && src == 0 && imm == 0
-		then format("nop") else if src == 0
+		then "nop" else 
+		if src == 0
 		then format("li %s, %d", dest, imm) else if imm == 0
 		then format("mv %s, %s", dest, src)
 		else format("addi %s, %s, %d", dest, src, imm)
@@ -348,7 +349,7 @@ op and(src2: reg_t, src1: reg_t, dest: reg_t)
 	syntax = format("and %s, %s, %s", dest, src1, src2)
 	image = format("0000000 %s %s 111 %s 0110011", src2, src1, dest)
 	action = {
-		setR(dest, R[src1] & R[src2])
+		setR(dest, R[src1] & R[src2]);
 	}
 
 op andi(imm: int(12), src: reg_t, dest: reg_t)
@@ -399,7 +400,7 @@ op slli(shamt: card(5), src: reg_t, dest: reg_t)
 	image  = format("0000000 %5b %s 001 %s 0010011", shamt, src, dest)
 	action = {
 		let s = shamt;
-		let temp = R[src] << s);
+		let temp = R[src] << s;
 		R[dest] = temp;
 	}
 
@@ -408,7 +409,7 @@ op srai(shamt: card(5), src: reg_t, dest: reg_t)
 	image  = format("0100000 %5b %s 101 %s 0010011", shamt, src, dest)
 	action = {
 		let s = shamt;
-		let temp = coerce(int(32), R[src]) >> s);
+		let temp = coerce(int(32), R[src]) >> s;
 		R[dest] = temp;
 	}
 
@@ -435,7 +436,7 @@ op srli(shamt: card(5), src: reg_t, dest: reg_t)
 	image  = format("0000000 %5b %s 101 %s 0010011", shamt, src, dest)
 	action = {
 		let s = shamt;
-		let temp = R[src] >> s);
+		let temp = R[src] >> s;
 		R[dest] = temp;
 	}
 
@@ -443,7 +444,7 @@ op or(src2: reg_t, src1: reg_t, dest: reg_t)
 	syntax = format("or %s, %s, %s", dest, src1, src2)
 	image = format("0000000 %s %s 110 %s 0110011", src2, src1, dest)
 	action = {
-		setR(rd, R[rs] | R[rt]);
+		setR(dest, R[src1] | R[src2]);
 	}
 
 op slt(src2: reg_t, src1: reg_t, dest: reg_t)
@@ -469,15 +470,13 @@ op xor(src2: reg_t, src1: reg_t, dest: reg_t)
 	syntax = format("xor %s, %s, %s", dest, src1, src2)
 	image = format("0000000 %s %s 100 %s 0110011", src2, src1, dest)
 	action = {
-		setR(rd, R[rs] ^ R[rt]);
+		setR(dest, R[src1] ^ R[src2]);
 	}
 
 op slti(imm: int(12), src: reg_t, dest: reg_t)
 	syntax = format("slti %s, %s, %d", dest, src, imm)
 	image = format("%12b %s 010 %s 0010011", imm, src, dest)
-	action = {	
-		action = { setR(dest, if R[src] < imm then 1 else 0 endif); }
-	}
+	action = { setR(dest, if R[src] < imm then 1 else 0 endif); }
 
 op sltiu(imm: int(12), src: reg_t, dest: reg_t)
 	syntax =
@@ -485,7 +484,5 @@ op sltiu(imm: int(12), src: reg_t, dest: reg_t)
 		then format("seqz %s, %s", dest, src)
 		else format("sltiu %s, %s, %d", dest, src, imm)
 		endif
-	image = format("%12b %s 011 %s 0010011", imm, src, dest)
-	action = {	
-		action = { setR(dest, if coerce(card(32), R[src]) < imm then 1 else 0 endif); }
-	}
+	image = format("%12b %s 011 %s 0010011", imm, src, dest)	
+	action = { setR(dest, if coerce(card(32), R[src]) < imm then 1 else 0 endif); }
