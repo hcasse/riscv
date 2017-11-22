@@ -19,16 +19,16 @@
  *	Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
+
 op all_load =
 	  lb
 	| lbu
 	| lh
 	| lhu
 	| lw
-	| lwu //new
+	| lwu	 //new
 	| ld
 
-// load instructions
 op lb(offset: int(12), base: reg_t, dest: reg_t)
 	syntax = format("lb %s, %d(%s)", dest, offset, base)
 	image  = format("%12b %s 000 %s 0000011", offset, base, dest)
@@ -71,15 +71,7 @@ op lw(offset: int(12), base: reg_t, dest: reg_t)
 		let memword = M32[vAddr];
 		setR(dest, memword);
 	}
-
-op lwu(offset: int(12), base: reg_t, dest: reg_t)
-	syntax = format("lwu %s, %d(%s)", dest, offset, base)
-	image  = format("%12b %s 110 %s 0000011", offset, base, dest)
-	action = {
-		let vAddr = offset + R[base];
-		setR(dest, coerce(duword, M32[vAddr]);
-	}
-
+	
 op ld(offset: int(12), base: reg_t, dest: reg_t)
 	syntax = format("ld %s, %d(%s)", dest, offset, base)
 	image  = format("%12b %s 011 %s 0000011", offset, base, dest)
@@ -87,6 +79,16 @@ op ld(offset: int(12), base: reg_t, dest: reg_t)
 		let vAddr = R[base] + offset;
 		setR(dest, M64[vAddr]);
 	}
+
+// load instructions
+op lwu(offset: int(12), base: reg_t, dest: reg_t)
+	syntax = format("lwu %s, %d(%s)", dest, offset, base)
+	image  = format("%12b %s 110 %s 0000011", offset, base, dest)
+	action = {
+		let vAddr = offset + R[base];
+		setR(dest, coerce(duword, M32[vAddr]));
+	}
+
 
 
 // store instruction
@@ -98,7 +100,7 @@ op all_stores =
 
 op sb(offset: int(12), src: reg_t, base: reg_t)
 	syntax = format("sb %s, %d(%s)", src, offset, base)
-	image  = format("%7b, %s %s 000 %5b 0100011", offset<11..5>, src, base, offset<4..0>)
+	image  = format("%7b %s %s 000 %5b 0100011", offset<11..5>, src, base, offset<4..0>)
 	action = {
 		let vAddr = offset + R[base];
 		AddressTranslation(pAddr, uncached, vAddr, DATA, STORE);
@@ -110,7 +112,7 @@ op sb(offset: int(12), src: reg_t, base: reg_t)
 
 op sh(offset: int(12), src: reg_t, base: reg_t)
 	syntax = format("sh %s, %d(%s)", src, offset, base)
-	image  = format("%7b, %s %s 001 %5b 0100011", offset<11..5>, src, base, offset<4..0>)
+	image  = format("%7b %s %s 001 %5b 0100011", offset<11..5>, src, base, offset<4..0>)
 	action = {
 		let vAddr = offset + R[base];
 		AddressTranslation(pAddr, uncached, vAddr, DATA, STORE);
@@ -120,7 +122,7 @@ op sh(offset: int(12), src: reg_t, base: reg_t)
 
 op sw(offset: int(12), src: reg_t, base: reg_t)
 	syntax = format("sw %s, %d(%s)", src, offset, base)
-	image  = format("%7b, %s %s 010 %5b 0100011", offset<11..5>, src, base, offset<4..0>)
+	image  = format("%7b %s %s 010 %5b 0100011", offset<11..5>, src, base, offset<4..0>)
 	action = {
 		let vAddr = offset + R[base];
 		AddressTranslation(pAddr, uncached, vAddr, DATA, STORE);
@@ -128,12 +130,16 @@ op sw(offset: int(12), src: reg_t, base: reg_t)
 		StoreMemoryWORD(uncached, dataword, pAddr, vAddr);
 	}
 
+
 op sd(offset: int(12), src: reg_t, base: reg_t)
 	syntax = format("sd %s, %d(%s)", src, offset, base)
-	image  = format("%7b, %s %s 011 %5b 0100011", offset<11..5>, src, base, offset<4..0>)
+	image  = format("%7b %s %s 011 %5b 0100011", offset<11..5>, src, base, offset<4..0>)
 	action = {
 		let vAddr = offset + R[base];
 		AddressTranslation(pAddr, uncached, vAddr, DATA, STORE);
 		let datadouble = R[src];
 		StoreMemoryDOUBLEWORD(uncached, datadouble, pAddr, vAddr);
 	}
+
+
+

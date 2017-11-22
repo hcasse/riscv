@@ -45,7 +45,7 @@ ENV=void_env
 endif
 
 GFLAGS = \
-	-switch \
+	-switch -D \
 	-m mem:$(MEMORY) \
 	-m loader:$(LOADER) \
 	-m syscall:$(SYSCALL) \
