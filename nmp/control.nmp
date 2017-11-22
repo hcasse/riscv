@@ -23,14 +23,14 @@
 op all_branch = 
 	  beq
 	| bge
-	//| bgeu	// TODO
+	| bgeu
 	| blt
-	//| bltu	// TODO
+	| bltu
 	| bne
 	| jal
 	| jalr
 
-//TODO: implement bltu + bgeu
+//TODO: action of bltu is the same as for blt; same at bgeu and bge
 
 // branch instructions
 op beq(src2: reg_t, src1: reg_t, offset: int(12))
@@ -80,6 +80,18 @@ op blt(src2: reg_t, src1: reg_t, offset: int(12))
 		endif;
 	}
 
+op bltu(src2: reg_t, src1: reg_t, offset: int(12))
+	syntax =
+		format("bltu %s, %s, %l", src1, src2, __IADDR + 4 + ((coerce(int(31), offset) :: 0<0..0>)))
+	image = format("%1b %6b %s %s 110 %4b %1b 1100011", offset<12..12>, offset<10..5>, src2, src1, offset<4..1>, offset<11..11>)
+	action = {
+		let tgt_offset = coerce(int(31), offset) :: 0<0..0>;
+		let condition = R[src1] < R[src2];
+		if condition then
+			NPC = NPC + tgt_offset;
+		endif;
+	}
+
 op bge(src2: reg_t, src1: reg_t, offset: int(12))
 	syntax =
 		if src1 == 0
@@ -89,6 +101,18 @@ op bge(src2: reg_t, src1: reg_t, offset: int(12))
 		else format("bge %s, %s, %l", src1, src2, __IADDR + 4 + ((coerce(int(31), offset) :: 0<0..0>)))
 		endif endif
 	image = format("%1b %6b %s %s 101 %4b %1b 1100011", offset<12..12>, offset<10..5>, src2, src1, offset<4..1>, offset<11..11>)
+	action = {
+		let tgt_offset = coerce(int(31), offset) :: 0<0..0>;
+		let condition = R[src1] >= R[src2];
+		if condition then
+			NPC = NPC + tgt_offset;
+		endif;
+	}
+
+op bgeu(src2: reg_t, src1: reg_t, offset: int(12))
+	syntax =
+		format("bgeu %s, %s, %l", src1, src2, __IADDR + 4 + ((coerce(int(31), offset) :: 0<0..0>)))
+	image = format("%1b %6b %s %s 111 %4b %1b 1100011", offset<12..12>, offset<10..5>, src2, src1, offset<4..1>, offset<11..11>)
 	action = {
 		let tgt_offset = coerce(int(31), offset) :: 0<0..0>;
 		let condition = R[src1] >= R[src2];

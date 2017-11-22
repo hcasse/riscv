@@ -1,8 +1,8 @@
 /*
- *	MIPS IV Instruction Set
+ *	RISC-V Instruction Set
  *
  *	This file is part of GLISS
- *	Copyright (c) 2016, IRIT UPS.
+ *	Copyright (c) 2017, IRIT UPS.
  *
  *	GLISS is free software; you can redistribute it and/or modify
  *	it under the terms of the GNU General Public License as published by
@@ -19,6 +19,23 @@
  *	Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
+// Integer and Bitwise Register-Register Operations
+// RISC-V
+op all_rrr =
+	  add 
+/*	| and
+	| or
+	| sll
+	| slt
+	| sltu
+	| sra
+	| srl
+	| sub
+	| xor
+*/
+
+// MIPS
+/*
 op all_rrr =
 	  and
 	| add
@@ -40,11 +57,11 @@ op all_rrr =
 	| sub
 	| subu
 	| xor
-
+*/
 
 op all_rri =
 	  addi
-	| addiu
+/*	| addiu
 	| andi
 	| daddi
 	| daddiu
@@ -52,8 +69,9 @@ op all_rri =
 	| slti
 	| sltiu
 	| xori
+*/
 
-
+/*
 op all_alu =
 	  lui
 	| mfhi
@@ -83,29 +101,27 @@ op all_dshift =
 	| dsra32
 	| dsrl
 	| dsrl32
-
+*/
 
 // additions
-op add(rs: reg_t, rt: reg_t, rd: reg_t)
-	syntax = format("add %s, %s, %s", rd, rs, rt)
-	image = format("000000 %s %s %s 00000 100000", rs, rt, rd)
-	action = {
-		if _32_bit_arithmetic_overflow(R[rs] + R[rt], R[rs], R[rt]) then
-			SignalException(IntegerOverflow);
-		endif;		
-		setR(rd, R[rs] + R[rt]);
+// RISC-V
+op add(src2: reg_t, src1: reg_t, dest: reg_t)
+	syntax = format("add %s, %s, %s", dest, src1, src2)
+	image = format("0000000 %s %s 000 %s 0110011", src2, src1, dest)
+	action = {	
+		setR(dest, R[src1] + R[src2]);
 	}
 
-op addi(rs: reg_t, rt: reg_t, imm: int(16))
-	syntax = format("addi %s, %s, %d", rt, rs, imm)
-	image = format("001000 %s %s %16b", rs, rt, imm)
-	action = {
-		if _32_bit_arithmetic_overflow(R[s] + imm, R[s], imm) then
-			SignalException(IntegerOverflow);
-		endif;		
-		setR(rt, R[rs] + imm);
+// RISC-V
+op addi(imm: int(12), src: reg_t, dest: reg_t)
+	syntax = format("addi %s, %s, %d", dest, src, imm)
+	image = format("%12b %s 000 %s 0010011", imm, src, dest)
+	action = {	
+		setR(dest, R[src] + imm);
 	}
 
+// MIPS
+/*
 op addiu(rs: reg_t, rt: reg_t, imm: int(16))
 	syntax = 
 		if rs == 0
@@ -429,6 +445,17 @@ op sll(rt: reg_t, rd: reg_t, sa: card(5))
 		R[rd] = temp;
 	}
 
+// RISC-V
+op srai(shamt: card(5), src: reg_t, dest: reg_t)
+	syntax = format("srai %s, %s, %d", dest, src, shamt)
+	image  = format("0100000 %5b %s 101 %s 0010011", shamt, src, dest)
+	action = {
+		let s = shamt;
+		let temp = coerce(int(32), R[src] >> s);
+		R[dest] = temp;
+	}
+
+// MIPS
 op sra(rt: reg_t, rd: reg_t, sa: card(5))
 	syntax = format("sra %s, %s, %d", rd, rt, sa)
 	image  = format("000000 00000 %s %s %5b 000011", rt, rd, sa)
@@ -539,3 +566,4 @@ op sltiu(rs: reg_t, rt: reg_t, imm: card(16))
 	action = { setR(rt, if coerce(card(32), R[rs]) < imm then 1 else 0 endif); }
 
 
+*/
