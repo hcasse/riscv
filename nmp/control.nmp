@@ -30,7 +30,7 @@ op all_branch =
 	| jal
 	| jalr
 
-//TODO: action of bltu is the same as for blt; same at bgeu and bge
+//TODO: check if action of blt/bltu and bge/bgeu works in correct way (signed vs. unsigned)
 
 // branch instructions
 op beq(src2: reg_t, src1: reg_t, offset: int(12))
@@ -74,7 +74,7 @@ op blt(src2: reg_t, src1: reg_t, offset: int(12))
 	image = format("%1b %6b %s %s 100 %4b %1b 1100011", offset<12..12>, offset<10..5>, src2, src1, offset<4..1>, offset<11..11>)
 	action = {
 		let tgt_offset = coerce(int(31), offset) :: 0<0..0>;
-		let condition = R[src1] < R[src2];
+		let condition = coerce(int(32), R[src1]) < coerce(int(32), R[src2]);
 		if condition then
 			NPC = NPC + tgt_offset;
 		endif;
@@ -86,7 +86,7 @@ op bltu(src2: reg_t, src1: reg_t, offset: int(12))
 	image = format("%1b %6b %s %s 110 %4b %1b 1100011", offset<12..12>, offset<10..5>, src2, src1, offset<4..1>, offset<11..11>)
 	action = {
 		let tgt_offset = coerce(int(31), offset) :: 0<0..0>;
-		let condition = R[src1] < R[src2];
+		let condition = coerce(card(32), R[src1]) < coerce(card(32), R[src2]);
 		if condition then
 			NPC = NPC + tgt_offset;
 		endif;
@@ -103,7 +103,7 @@ op bge(src2: reg_t, src1: reg_t, offset: int(12))
 	image = format("%1b %6b %s %s 101 %4b %1b 1100011", offset<12..12>, offset<10..5>, src2, src1, offset<4..1>, offset<11..11>)
 	action = {
 		let tgt_offset = coerce(int(31), offset) :: 0<0..0>;
-		let condition = R[src1] >= R[src2];
+		let condition = coerce(int(32), R[src1]) >= coerce(int(32), R[src2]);
 		if condition then
 			NPC = NPC + tgt_offset;
 		endif;
@@ -115,7 +115,7 @@ op bgeu(src2: reg_t, src1: reg_t, offset: int(12))
 	image = format("%1b %6b %s %s 111 %4b %1b 1100011", offset<12..12>, offset<10..5>, src2, src1, offset<4..1>, offset<11..11>)
 	action = {
 		let tgt_offset = coerce(int(31), offset) :: 0<0..0>;
-		let condition = R[src1] >= R[src2];
+		let condition = coerce(card(32), R[src1]) >= coerce(card(32), R[src2]);
 		if condition then
 			NPC = NPC + tgt_offset;
 		endif;
