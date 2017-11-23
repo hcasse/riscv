@@ -96,7 +96,7 @@ op allinstr =
 	| all_rri
 	| all_alu
 	| all_branch
-//	| all_special
+	| all_special
 //	| all_muldiv
 //	| all_dshift
 	| all_load
