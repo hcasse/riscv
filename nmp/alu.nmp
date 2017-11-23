@@ -20,7 +20,6 @@
  */
 
 // Integer and Bitwise Register-Register Operations
-// RISC-V
 op all_rrr =
 	  add 
 	| and
@@ -33,6 +32,7 @@ op all_rrr =
 	| sub
 	| xor
 
+// Integer Register-Register Operations
 op all_rri =
 	  addi
 	| andi
@@ -44,31 +44,23 @@ op all_rri =
 	| srli
 	| xori
 
+// other ALU instructions
 op all_alu =
 	  lui
 	| auipc
 
+// RV32M Extension: multiplication and division
 op all_muldiv =
-	  div
-	| divu
-	| rem
-	| remu
-	| mul
+	  mul
 	| mulh
 	| mulhsu
 	| mulhu
+	| div
+	| divu
+	| rem
+	| remu
 
-/* MIPS
-op all_dshift =
-	  dsll
-	| dsll32
-	| dsra
-	| dsra32
-	| dsrl
-	| dsrl32
-*/
-
-// additions
+// addition + subtraction
 op add(src2: reg_t, src1: reg_t, dest: reg_t)
 	syntax = format("add %s, %s, %s", dest, src1, src2)
 	image = format("0000000 %s %s 000 %s 0110011", src2, src1, dest)
@@ -90,12 +82,52 @@ op addi(imm: int(12), src: reg_t, dest: reg_t)
 		setR(dest, R[src] + imm);
 	}
 
+op sub(src2: reg_t, src1: reg_t, dest: reg_t)
+	syntax =
+		if src1 == 0
+		then format("neg %s, %s", dest, src2)
+		else format("sub %s, %s, %s", dest, src1, src2)
+		endif
+	image = format("0100000 %s %s 000 %s 0110011", src2, src1, dest)
+	action = {
+		setR(dest, R[src1] - R[src2]);
+	}
+
+
 // binary operations
+op and(src2: reg_t, src1: reg_t, dest: reg_t)
+	syntax = format("and %s, %s, %s", dest, src1, src2)
+	image = format("0000000 %s %s 111 %s 0110011", src2, src1, dest)
+	action = {
+		setR(dest, R[src1] & R[src2]);
+	}
+
+op andi(imm: int(12), src: reg_t, dest: reg_t)
+	syntax = format("andi %s, %s, %d", dest, src, imm)
+	image = format("%12b %s 111 %s 0010011", imm, src, dest)
+	action = {
+		setR(dest, R[src] & imm);
+	}
+
+op or(src2: reg_t, src1: reg_t, dest: reg_t)
+	syntax = format("or %s, %s, %s", dest, src1, src2)
+	image = format("0000000 %s %s 110 %s 0110011", src2, src1, dest)
+	action = {
+		setR(dest, R[src1] | R[src2]);
+	}
+
 op ori(imm: int(12), src: reg_t, dest: reg_t)
 	syntax = format("ori %s, %s, %d", dest, src, imm)
 	image = format("%12b %s 110 %s 0010011", imm, src, dest)
 	action = {	
 		setR(dest, R[src] | imm);
+	}
+
+op xor(src2: reg_t, src1: reg_t, dest: reg_t)
+	syntax = format("xor %s, %s, %s", dest, src1, src2)
+	image = format("0000000 %s %s 100 %s 0110011", src2, src1, dest)
+	action = {
+		setR(dest, R[src1] ^ R[src2]);
 	}
 
 op xori(imm: int(12), src: reg_t, dest: reg_t)
@@ -109,245 +141,8 @@ op xori(imm: int(12), src: reg_t, dest: reg_t)
 		setR(dest, R[src] ^ imm);
 	}
 
-// subtraction instruction
-op sub(src2: reg_t, src1: reg_t, dest: reg_t)
-	syntax =
-		if src1 == 0
-		then format("neg %s, %s", dest, src2)
-		else format("sub %s, %s, %s", dest, src1, src2)
-		endif
-	image = format("0100000 %s %s 000 %s 0110011", src2, src1, dest)
-	action = {
-		setR(dest, R[src1] - R[src2]);
-	}
 
-// multiplication and division instructions
-op div(divisor: reg_t, dividend: reg_t, dest: reg_t)
-	syntax = format("div %s, %s, %s", dest, dividend, divisor)
-	image = format("0000001 %s %s 100 %s 0110011", divisor, dividend, dest)
-	action = {
-		if divisor == 0
-		then setR(dest, -1); else if divisor == -1 && dividend == 0x1000000
-		then setR(dest, 0x10000000);
-		else setR(dest, R[dividend] / R[divisor]);
-		endif; endif;
-	} 
-
-op divu(divisor: reg_t, dividend: reg_t, dest: reg_t)
-	syntax = format("divu %s, %s, %s", dest, dividend, divisor)
-	image = format("0000001 %s %s 101 %s 0110011", divisor, dividend, dest)
-	action = {
-		if divisor == 0
-		then setR(dest, -1);
-		else setR(dest, coerce(card(32), R[dividend]) / coerce(card(32), R[divisor]));
-		endif;
-	} 
-
-op rem(divisor: reg_t, dividend: reg_t, dest: reg_t)
-	syntax = format("rem %s, %s, %s", dest, dividend, divisor)
-	image = format("0000001 %s %s 110 %s 0110011", divisor, dividend, dest)
-	action = {
-		if divisor == 0
-		then setR(dest, dividend); else if divisor == -1 && dividend == 0x1000000
-		then setR(dest, 0);
-		else setR(dest, R[dividend] % R[divisor]);
-		endif; endif;
-	} 
-
-op remu(divisor: reg_t, dividend: reg_t, dest: reg_t)
-	syntax = format("remu %s, %s, %s", dest, dividend, divisor)
-	image = format("0000001 %s %s 111 %s 0110011", divisor, dividend, dest)
-	action = {
-		if divisor == 0
-		then setR(dest, dividend);
-		else setR(dest, coerce(card(32), R[dividend]) % coerce(card(32), R[divisor]));
-		endif;
-	} 
-
-/*
-// MIPS
-// multiplication and division instruction
-
-op ddiv(rs: reg_t, rt: reg_t)
-	syntax = format("ddiv %s, %s", rs, rt)
-	image = format("000000 %s %s 00 0000 0000 011110", rs, rt)
-	action = {
-		LO = R[rs] / R[rt];
-		HI = R[rs] % R[rt];
-	}
-
-op ddivu(rs: reg_t, rt: reg_t)
-	syntax = format("ddivu %s, %s", rs, rt)
-	image = format("000000 %s %s 00 0000 0000 011111", rs, rt)
-	action = {
-		LO = coerce(duword, R[rs]) / coerce(duword, R[rt]);
-		HI = coerce(duword, R[rs]) % coerce(duword, R[rt]);
-	}
-
-op div(rs: reg_t, rt: reg_t)
-	syntax = format("div %s, %s", rs, rt)
-	image = format("000000 %s %s 00 0000 0000 011010", rs, rt)
-	action = {
-		LO = coerce(word, R[rs]) / coerce(word, R[rt]);
-		HI = coerce(word, R[rs]) % coerce(word, R[rt]);
-	}
-
-op divu(rs: reg_t, rt: reg_t)
-	syntax = format("divu %s, %s", rs, rt)
-	image = format("000000 %s %s 00 0000 0000 011011", rs, rt)
-	action = {
-		LO = coerce(uword, R[rs]) / coerce(uword, R[rt]);
-		HI = coerce(uword, R[rs]) % coerce(uword, R[rt]);
-	}
-*/
-
-// RISC-V
-op mul(multiplier: reg_t, multiplicand: reg_t, dest: reg_t)
-	syntax = format("mul %s, %s, %s", dest, multiplicand, multiplier)
-	image = format("0000001 %s %s 000 %s 0110011", multiplicand, multiplier, dest)
-	action = {
-		let prod: int(64) = coerce(int(64), R[multiplier]) * coerce(int(64), R[multiplicand]);
-		setR(dest, prod<31..0>);
-	} 
-
-op mulh(multiplier: reg_t, multiplicand: reg_t, dest: reg_t)
-	syntax = format("mulh %s, %s, %s", dest, multiplicand, multiplier)
-	image = format("0000001 %s %s 001 %s 0110011", multiplicand, multiplier, dest)
-	action = {
-		let prod: int(64) = coerce(int(64), R[multiplier]) * coerce(int(64), R[multiplicand]);
-		setR(dest, prod<63..32>);
-	} 
-
-op mulhsu(multiplier: reg_t, multiplicand: reg_t, dest: reg_t)
-	syntax = format("mulhsu %s, %s, %s", dest, multiplicand, multiplier)
-	image = format("0000001 %s %s 010 %s 0110011", multiplicand, multiplier, dest)
-	action = {
-		let prod: int(64) = coerce(card(64), R[multiplier]) * coerce(int(64), R[multiplicand]);
-		setR(dest, prod<63..32>);
-	} 
-
-op mulhu(multiplier: reg_t, multiplicand: reg_t, dest: reg_t)
-	syntax = format("mulhu %s, %s, %s", dest, multiplicand, multiplier)
-	image = format("0000001 %s %s 011 %s 0110011", multiplicand, multiplier, dest)
-	action = {
-		let prod: int(64) = coerce(card(64), R[multiplier]) * coerce(card(64), R[multiplicand]);
-		setR(dest, prod<63..32>);
-	} 
-
-/* MIPS
-// shift instructions
-op dsll(rt: reg_t, rd: reg_t, sa: card(5))
-	syntax = format("dsll %s, %s, %d", rd, rt, sa)
-	image = format("000000 00000 %s %s %5b 111000", rt, rd, sa)
-	action = {
-		setR(rd, R[rt] << sa);
-	}
-
-op dsll32(rt: reg_t, rd: reg_t, sa: card(5))
-	syntax = format("dsll32 %s, %s, %d", rd, rt, sa)
-	image = format("000000 00000 %s %s %5b 111100", rt, rd, sa)
-	action = {
-		setR(rd, R[rt] << (coerce(word, sa)  + 32));
-	}
-
-op dsllv(rs: reg_t, rt: reg_t, rd: reg_t)
-	syntax = format("dsllv %s, %s, %s", rd, rs, rt)
-	image = format("000000 %s %s %s 00000 010100", rs, rt, rd)
-	action = {
-		setR(rd, R[rs] << R[rt]<5..0>);
-	}
-
-op dsra(rt: reg_t, rd: reg_t, sa: card(5))
-	syntax = format("dsra %s, %s, %d", rd, rt, sa)
-	image = format("000000 00000 %s %s %5b 111011", rt, rd, sa)
-	action = {
-		setR(rd, R[rt] >> sa);
-	}
-
-op dsra32(rt: reg_t, rd: reg_t, sa: card(5))
-	syntax = format("dsra32 %s, %s, %d", rd, rt, sa)
-	image = format("000000 00000 %s %s %5b 111111", rt, rd, sa)
-	action = {
-		setR(rd, R[rt] >> (sa + 32));
-	}
-
-op dsrav(rs: reg_t, rt: reg_t, rd: reg_t)
-	syntax = format("dsrav %s, %s, %s", rd, rs, rt)
-	image = format("000000 %s %s %s 00000 010111", rs, rt, rd)
-	action = {
-		setR(rd, R[rs] >> R[rt]<5..0>);
-	}
-
-op dsrl(rt: reg_t, rd: reg_t, sa: card(5))
-	syntax = format("dsrl %s, %s, %d", rd, rt, sa)
-	image = format("000000 00000 %s %s %5b 111010", rt, rd, sa)
-	action = {
-		setR(rd, coerce(duword, R[rt]) >> sa);
-	}
-
-op dsrl32(rt: reg_t, rd: reg_t, sa: card(5))
-	syntax = format("dsra %s, %s, %d", rd, rt, sa)
-	image = format("000000 00000 %s %s %5b 111110", rt, rd, sa)
-	action = {
-		setR(rd, coerce(duword, R[rt]) >> (coerce(word, sa) + 32));
-	}
-
-op dsrlv(rs: reg_t, rt: reg_t, rd: reg_t)
-	syntax = format("dsrlv %s, %s, %s", rd, rs, rt)
-	image = format("000000 %s %s %s 00000 010110", rs, rt, rd)
-	action = {
-		setR(rd, R[rs] << R[rt]<5..0>);
-	}
-*/
-
-// other ALU instructions
-// RISC-V
-op and(src2: reg_t, src1: reg_t, dest: reg_t)
-	syntax = format("and %s, %s, %s", dest, src1, src2)
-	image = format("0000000 %s %s 111 %s 0110011", src2, src1, dest)
-	action = {
-		setR(dest, R[src1] & R[src2]);
-	}
-
-op andi(imm: int(12), src: reg_t, dest: reg_t)
-	syntax = format("andi %s, %s, %d", dest, src, imm)
-	image = format("%12b %s 111 %s 0010011", imm, src, dest)
-	action = { setR(dest, R[src] & imm); }
-
-op lui(immediate: int(20), dest: reg_t)
-	syntax = format("lui %s, %d", dest, immediate)
-	image  = format("%20b %s 0110111", immediate, dest)
-	action = { setR(dest, coerce(dword, immediate) << 12); }
-
-op auipc(immediate: int(20), dest: reg_t)
-	syntax = format("auipc %s, %d", dest, immediate)
-	image  = format("%20b %s 0010111", immediate, dest)
-	action = { setR(dest, __IADDR + coerce(dword, immediate) << 12); }
-
-/*
-// MIPS	
-op mfhi(rd: reg_t)
-	syntax = format("mfhi %s", rd)
-	image = format("000000 0000000000 %5b 00000 010000", rd)
-	action = { R[rd] = HI; }
-
-op mflo(rd: reg_t)
-	syntax = format("mflo %s", rd)
-	image = format("000000 0000000000 %5b 00000 010010", rd)
-	action = { R[rd] = LO; }
-
-op mthi(rs: reg_t)
-	syntax = format("mthi %s", rs)
-	image = format("000000 %5b 000000000000000 010001", rs)
-	action = { HI = R[rs]; }
-
-op mtlo(rs: reg_t)
-	syntax = format("mtlo %s", rs)
-	image = format("000000 %5b 000000000000000 010011", rs)
-	action = { LO = R[rs]; }
-*/
-
-// RISC-V
+// shift operations
 op sll(src2: reg_t, src1: reg_t, dest: reg_t)
 	syntax = format("sll %s, %s, %s", dest, src1, src2)
 	image = format("0000000 %s %s 001 %s 0110011", src2, src1, dest)
@@ -393,6 +188,8 @@ op srl(src2: reg_t, src1: reg_t, dest: reg_t)
 		R[dest] = temp;
 	}
 
+
+// compare operations
 op srli(shamt: card(5), src: reg_t, dest: reg_t)
 	syntax = format("srli %s, %s, %d", dest, src, shamt)
 	image  = format("0000000 %5b %s 101 %s 0010011", shamt, src, dest)
@@ -400,13 +197,6 @@ op srli(shamt: card(5), src: reg_t, dest: reg_t)
 		let s = shamt;
 		let temp = R[src] >> s;
 		R[dest] = temp;
-	}
-
-op or(src2: reg_t, src1: reg_t, dest: reg_t)
-	syntax = format("or %s, %s, %s", dest, src1, src2)
-	image = format("0000000 %s %s 110 %s 0110011", src2, src1, dest)
-	action = {
-		setR(dest, R[src1] | R[src2]);
 	}
 
 op slt(src2: reg_t, src1: reg_t, dest: reg_t)
@@ -428,13 +218,6 @@ op sltu(src2: reg_t, src1: reg_t, dest: reg_t)
 	image = format("0000000 %s %s 011 %s 0110011", src2, src1, dest)
 	action = { setR(dest, if coerce(card(32), R[src1]) < coerce(card(32), R[src2]) then 1 else 0 endif); }
 
-op xor(src2: reg_t, src1: reg_t, dest: reg_t)
-	syntax = format("xor %s, %s, %s", dest, src1, src2)
-	image = format("0000000 %s %s 100 %s 0110011", src2, src1, dest)
-	action = {
-		setR(dest, R[src1] ^ R[src2]);
-	}
-
 op slti(imm: int(12), src: reg_t, dest: reg_t)
 	syntax = format("slti %s, %s, %d", dest, src, imm)
 	image = format("%12b %s 010 %s 0010011", imm, src, dest)
@@ -448,3 +231,91 @@ op sltiu(imm: int(12), src: reg_t, dest: reg_t)
 		endif
 	image = format("%12b %s 011 %s 0010011", imm, src, dest)	
 	action = { setR(dest, if coerce(card(32), R[src]) < imm then 1 else 0 endif); }
+
+
+// other ALU instructions
+op lui(immediate: int(20), dest: reg_t)
+	syntax = format("lui %s, %d", dest, immediate)
+	image  = format("%20b %s 0110111", immediate, dest)
+	action = { setR(dest, coerce(dword, immediate) << 12); }
+
+op auipc(immediate: int(20), dest: reg_t)
+	syntax = format("auipc %s, %d", dest, immediate)
+	image  = format("%20b %s 0010111", immediate, dest)
+	action = { setR(dest, __IADDR + coerce(dword, immediate) << 12); }
+
+
+// multiplication and division instructions
+op mul(multiplier: reg_t, multiplicand: reg_t, dest: reg_t)
+	syntax = format("mul %s, %s, %s", dest, multiplicand, multiplier)
+	image = format("0000001 %s %s 000 %s 0110011", multiplicand, multiplier, dest)
+	action = {
+		let prod: int(64) = coerce(int(64), R[multiplier]) * coerce(int(64), R[multiplicand]);
+		setR(dest, prod<31..0>);
+	} 
+
+op mulh(multiplier: reg_t, multiplicand: reg_t, dest: reg_t)
+	syntax = format("mulh %s, %s, %s", dest, multiplicand, multiplier)
+	image = format("0000001 %s %s 001 %s 0110011", multiplicand, multiplier, dest)
+	action = {
+		let prod: int(64) = coerce(int(64), R[multiplier]) * coerce(int(64), R[multiplicand]);
+		setR(dest, prod<63..32>);
+	} 
+
+op mulhsu(multiplier: reg_t, multiplicand: reg_t, dest: reg_t)
+	syntax = format("mulhsu %s, %s, %s", dest, multiplicand, multiplier)
+	image = format("0000001 %s %s 010 %s 0110011", multiplicand, multiplier, dest)
+	action = {
+		let prod: int(64) = coerce(card(64), R[multiplier]) * coerce(int(64), R[multiplicand]);
+		setR(dest, prod<63..32>);
+	} 
+
+op mulhu(multiplier: reg_t, multiplicand: reg_t, dest: reg_t)
+	syntax = format("mulhu %s, %s, %s", dest, multiplicand, multiplier)
+	image = format("0000001 %s %s 011 %s 0110011", multiplicand, multiplier, dest)
+	action = {
+		let prod: int(64) = coerce(card(64), R[multiplier]) * coerce(card(64), R[multiplicand]);
+		setR(dest, prod<63..32>);
+	}
+
+op div(divisor: reg_t, dividend: reg_t, dest: reg_t)
+	syntax = format("div %s, %s, %s", dest, dividend, divisor)
+	image = format("0000001 %s %s 100 %s 0110011", divisor, dividend, dest)
+	action = {
+		if divisor == 0
+		then setR(dest, -1); else if divisor == -1 && dividend == 0x1000000
+		then setR(dest, 0x10000000);
+		else setR(dest, R[dividend] / R[divisor]);
+		endif; endif;
+	} 
+
+op divu(divisor: reg_t, dividend: reg_t, dest: reg_t)
+	syntax = format("divu %s, %s, %s", dest, dividend, divisor)
+	image = format("0000001 %s %s 101 %s 0110011", divisor, dividend, dest)
+	action = {
+		if divisor == 0
+		then setR(dest, -1);
+		else setR(dest, coerce(card(32), R[dividend]) / coerce(card(32), R[divisor]));
+		endif;
+	} 
+
+op rem(divisor: reg_t, dividend: reg_t, dest: reg_t)
+	syntax = format("rem %s, %s, %s", dest, dividend, divisor)
+	image = format("0000001 %s %s 110 %s 0110011", divisor, dividend, dest)
+	action = {
+		if divisor == 0
+		then setR(dest, dividend); else if divisor == -1 && dividend == 0x1000000
+		then setR(dest, 0);
+		else setR(dest, R[dividend] % R[divisor]);
+		endif; endif;
+	} 
+
+op remu(divisor: reg_t, dividend: reg_t, dest: reg_t)
+	syntax = format("remu %s, %s, %s", dest, dividend, divisor)
+	image = format("0000001 %s %s 111 %s 0110011", divisor, dividend, dest)
+	action = {
+		if divisor == 0
+		then setR(dest, dividend);
+		else setR(dest, coerce(card(32), R[dividend]) % coerce(card(32), R[divisor]));
+		endif;
+	}  
