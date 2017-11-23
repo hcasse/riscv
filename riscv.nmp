@@ -97,7 +97,7 @@ op allinstr =
 	| all_alu
 	| all_branch
 	| all_special
-//	| all_muldiv
+	| all_muldiv
 //	| all_dshift
 	| all_load
 	| all_stores
