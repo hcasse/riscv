@@ -273,7 +273,7 @@ op mulhu(multiplier: reg_t, multiplicand: reg_t, dest: reg_t)
 	syntax = format("mulhu %s, %s, %s", dest, multiplicand, multiplier)
 	image = format("0000001 %s %s 011 %s 0110011", multiplicand, multiplier, dest)
 	action = {
-		let prod: int(64) = coerce(card(64), R[multiplier]) * coerce(card(64), R[multiplicand]);
+		let prod: card(64) = coerce(card(64), R[multiplier]) * coerce(card(64), R[multiplicand]);
 		setR(dest, prod<63..32>);
 	}
 
@@ -281,9 +281,9 @@ op div(divisor: reg_t, dividend: reg_t, dest: reg_t)
 	syntax = format("div %s, %s, %s", dest, dividend, divisor)
 	image = format("0000001 %s %s 100 %s 0110011", divisor, dividend, dest)
 	action = {
-		if divisor == 0
-		then setR(dest, -1); else if divisor == -1 && dividend == 0x1000000
-		then setR(dest, 0x10000000);
+		if R[divisor] == 0
+		then setR(dest, -1); else if R[divisor] == -1 && R[dividend] == 0x8000000
+		then setR(dest, R[dividend]);
 		else setR(dest, R[dividend] / R[divisor]);
 		endif; endif;
 	} 
@@ -292,7 +292,7 @@ op divu(divisor: reg_t, dividend: reg_t, dest: reg_t)
 	syntax = format("divu %s, %s, %s", dest, dividend, divisor)
 	image = format("0000001 %s %s 101 %s 0110011", divisor, dividend, dest)
 	action = {
-		if divisor == 0
+		if R[divisor] == 0
 		then setR(dest, -1);
 		else setR(dest, coerce(card(32), R[dividend]) / coerce(card(32), R[divisor]));
 		endif;
@@ -302,8 +302,8 @@ op rem(divisor: reg_t, dividend: reg_t, dest: reg_t)
 	syntax = format("rem %s, %s, %s", dest, dividend, divisor)
 	image = format("0000001 %s %s 110 %s 0110011", divisor, dividend, dest)
 	action = {
-		if divisor == 0
-		then setR(dest, dividend); else if divisor == -1 && dividend == 0x1000000
+		if R[divisor] == 0
+		then setR(dest, R[dividend]); else if R[divisor] == -1 && R[dividend] == 0x8000000
 		then setR(dest, 0);
 		else setR(dest, R[dividend] % R[divisor]);
 		endif; endif;
@@ -313,8 +313,8 @@ op remu(divisor: reg_t, dividend: reg_t, dest: reg_t)
 	syntax = format("remu %s, %s, %s", dest, dividend, divisor)
 	image = format("0000001 %s %s 111 %s 0110011", divisor, dividend, dest)
 	action = {
-		if divisor == 0
-		then setR(dest, dividend);
+		if R[divisor] == 0
+		then setR(dest, R[dividend]);
 		else setR(dest, coerce(card(32), R[dividend]) % coerce(card(32), R[divisor]));
 		endif;
 	}  
