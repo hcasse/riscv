@@ -92,12 +92,12 @@ op instruction (x: allinstr)
 	}
 
 op allinstr =
-//	  all_rrr
-//	| all_rri
-//	| all_alu
-	  all_branch
-//	| all_special
-//	| all_muldiv
+	  all_rrr
+	| all_rri
+	| all_alu
+	| all_branch
+	| all_special
+	| all_muldiv
 //	| all_dshift
 	| all_load
 	| all_stores

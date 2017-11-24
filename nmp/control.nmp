@@ -30,18 +30,18 @@ op all_branch =
 	| jal
 	| jalr
 
-//TODO: action of bltu is the same as for blt; same at bgeu and bge
-
 // branch instructions
 op beq(src2: reg_t, src1: reg_t, offset: int(12))
+	tgt_offset = coerce(int(13), offset :: 0<0..0>)
 	syntax =
-		if src1 == 0 || src2 == 0
-		then format("beqz %l", __IADDR + 4 + coerce(int(30), offset :: 0<0..0>))
-		else format("beq %s, %s, %l", src1, src2, __IADDR + 4 + ((coerce(int(31), offset) :: 0<0..0>)))
-		endif
-	image = format("%1b %6b %s %s 000 %4b %1b 1100011", offset<12..12>, offset<10..5>, src2, src1, offset<4..1>, offset<11..11>)
+		if src1 == 0
+		then format("beqz %s, %l", src2, __IADDR + tgt_offset)
+		else if src2 == 0
+		then format("beqz %s, %l", src1, __IADDR + tgt_offset)
+		else format("beq %s, %s, %l", src1, src2, __IADDR + tgt_offset)
+		endif endif
+	image = format("%1b %6b %s %s 000 %4b %1b 1100011", offset<11..11>, offset<9..4>, src2, src1, offset<3..0>, offset<10..10>)
 	action = {
-		let tgt_offset = coerce(int(31), offset) :: 0<0..0>;
 		let condition = R[src1] == R[src2];
 		if condition then
 			NPC = NPC + tgt_offset;
@@ -49,14 +49,16 @@ op beq(src2: reg_t, src1: reg_t, offset: int(12))
 	}
 
 op bne(src2: reg_t, src1: reg_t, offset: int(12))
+	tgt_offset = coerce(int(13), offset :: 0<0..0>)
 	syntax =
-		if src1 == 0 || src2 == 0
-		then format("bnez %l", __IADDR + 4 + ((coerce(int(30), offset) :: 0<0..0>)))
-		else format("bne %s, %s, %l", src1, src2, __IADDR + 4 + ((coerce(int(31), offset) :: 0<0..0>)))
-		endif
-	image = format("%1b %6b %s %s 001 %4b %1b 1100011", offset<12..12>, offset<10..5>, src2, src1, offset<4..1>, offset<11..11>)
+		if src1 == 0
+		then format("bnez %s, %l", src2, __IADDR + tgt_offset)
+		else if src2 == 0
+		then format("bnez %s, %l", src1, __IADDR + tgt_offset)
+		else format("bne %s, %s, %l", src1, src2, __IADDR + tgt_offset)
+		endif endif
+	image = format("%1b %6b %s %s 001 %4b %1b 1100011", offset<11..11>, offset<9..4>, src2, src1, offset<3..0>, offset<10..10>)
 	action = {
-		let tgt_offset = coerce(int(31), offset) :: 0<0..0>;
 		let condition = R[src1] != R[src2];
 		if condition then
 			NPC = NPC + tgt_offset;
@@ -64,16 +66,16 @@ op bne(src2: reg_t, src1: reg_t, offset: int(12))
 	}
 
 op blt(src2: reg_t, src1: reg_t, offset: int(12))
+	tgt_offset = coerce(int(13), offset :: 0<0..0>)
 	syntax =
 		if src1 == 0
-		then format("bltz %s, %l", src2, __IADDR + 4 + ((coerce(int(30), offset) :: 0<0..0>)))
+		then format("bltz %s, %l", src2, __IADDR + tgt_offset)
 		else if src2 == 0
-		then format("bgtz %s, %l", src1, __IADDR + 4 + ((coerce(int(30), offset) :: 0<0..0>)))
-		else format("blt %s, %s, %l", src1, src2, __IADDR + 4 + ((coerce(int(31), offset) :: 0<0..0>)))
+		then format("bgtz %s, %l", src1, __IADDR + tgt_offset)
+		else format("blt %s, %s, %l", src1, src2, __IADDR + tgt_offset)
 		endif endif
-	image = format("%1b %6b %s %s 100 %4b %1b 1100011", offset<12..12>, offset<10..5>, src2, src1, offset<4..1>, offset<11..11>)
+	image = format("%1b %6b %s %s 100 %4b %1b 1100011", offset<11..11>, offset<9..4>, src2, src1, offset<3..0>, offset<10..10>)
 	action = {
-		let tgt_offset = coerce(int(31), offset) :: 0<0..0>;
 		let condition = R[src1] < R[src2];
 		if condition then
 			NPC = NPC + tgt_offset;
@@ -81,28 +83,27 @@ op blt(src2: reg_t, src1: reg_t, offset: int(12))
 	}
 
 op bltu(src2: reg_t, src1: reg_t, offset: int(12))
-	syntax =
-		format("bltu %s, %s, %l", src1, src2, __IADDR + coerce(int(13), offset :: 0<0..0>))
+	tgt_offset = coerce(int(13), offset :: 0<0..0>)
+	syntax = format("bltu %s, %s, %l", src1, src2, __IADDR + tgt_offset)
 	image = format("%1b %6b %s %s 110 %4b %1b 1100011", offset<11..11>, offset<9..4>, src2, src1, offset<3..0>, offset<10..10>)
 	action = {
-		let tgt_offset = coerce(int(13), offset :: 0<0..0>);
-		let condition = R[src1] < R[src2];
+		let condition = coerce(card(32), R[src1]) < coerce(card(32), R[src2]);
 		if condition then
 			NPC = NPC + tgt_offset;
 		endif;
 	}
 
 op bge(src2: reg_t, src1: reg_t, offset: int(12))
+	tgt_offset = coerce(int(13), offset :: 0<0..0>)
 	syntax =
 		if src1 == 0
-		then format("bgez %s, %l", src2, __IADDR + 4 + ((coerce(int(30), offset) :: 0<0..0>)))
+		then format("bgez %s, %l", src2, __IADDR + tgt_offset)
 		else if src2 == 0
-		then format("bgez %s, %l", src1, __IADDR + 4 + ((coerce(int(30), offset) :: 0<0..0>)))
-		else format("bge %s, %s, %l", src1, src2, __IADDR + 4 + ((coerce(int(31), offset) :: 0<0..0>)))
+		then format("bgez %s, %l", src1, __IADDR + tgt_offset)
+		else format("bge %s, %s, %l", src1, src2, __IADDR + tgt_offset)
 		endif endif
-	image = format("%1b %6b %s %s 101 %4b %1b 1100011", offset<12..12>, offset<10..5>, src2, src1, offset<4..1>, offset<11..11>)
+	image = format("%1b %6b %s %s 101 %4b %1b 1100011", offset<11..11>, offset<9..4>, src2, src1, offset<3..0>, offset<10..10>)
 	action = {
-		let tgt_offset = coerce(int(31), offset) :: 0<0..0>;
 		let condition = R[src1] >= R[src2];
 		if condition then
 			NPC = NPC + tgt_offset;
@@ -110,12 +111,12 @@ op bge(src2: reg_t, src1: reg_t, offset: int(12))
 	}
 
 op bgeu(src2: reg_t, src1: reg_t, offset: int(12))
+	tgt_offset = coerce(int(13), offset :: 0<0..0>)
 	syntax =
-		format("bgeu %s, %s, %l", src1, src2, __IADDR + 4 + ((coerce(int(31), offset) :: 0<0..0>)))
-	image = format("%1b %6b %s %s 111 %4b %1b 1100011", offset<12..12>, offset<10..5>, src2, src1, offset<4..1>, offset<11..11>)
+		format("bgeu %s, %s, %l", src1, src2, __IADDR + tgt_offset)
+	image = format("%1b %6b %s %s 111 %4b %1b 1100011", offset<11..11>, offset<9..4>, src2, src1, offset<3..0>, offset<10..10>)
 	action = {
-		let tgt_offset = coerce(int(31), offset) :: 0<0..0>;
-		let condition = R[src1] >= R[src2];
+		let condition = coerce(card(32), R[src1]) >= coerce(card(32), R[src2]);
 		if condition then
 			NPC = NPC + tgt_offset;
 		endif;
@@ -124,15 +125,15 @@ op bgeu(src2: reg_t, src1: reg_t, offset: int(12))
 op jal(offset: int(20), dest: reg_t)
 	syntax = 
 		if dest == 0
-		then format("j %d", __IADDR + 4 + (coerce(int(31), offset) :: 0<0..0>))
+		then format("j %l", __IADDR + (coerce(int(32), offset)))
 		else if dest == 1
-		then format("jal %d", __IADDR + 4 + (coerce(int(31), offset) :: 0<0..0>))
-		else format("jal %s, %d", dest, __IADDR + 4 + (coerce(int(31), offset) :: 0<0..0>))
+		then format("jal %l", __IADDR + (coerce(int(32), offset)))
+		else format("jal %s, %l", dest, __IADDR + (coerce(int(32), offset)))
 		endif endif
 	image = format("%1b %10b %1b %8b %s 1101111", offset<20..20>, offset<10..1>, offset<11..11>, offset<19..12>, dest)
 	action = {
 		if dest != 0 then R[dest] = PC + 4; endif;
-		let tgt_offset = coerce(int(31), offset) :: 0<0..0>;
+		let tgt_offset = coerce(int(32), offset);
 		NPC = NPC + tgt_offset;
 	}
 
@@ -144,12 +145,12 @@ op jalr(offset: int(12), base: reg_t, dest: reg_t)
 		then "ret"
 		else if dest == 0 && offset == 0 && base != 1
 		then format("jr %s", base)
-		else format("jalr %s, %s, %d", dest, base, __IADDR + 4 + (coerce(int(31), offset) :: 0<0..0>))
+		else format("jalr %s, %s, %l", dest, base, __IADDR + coerce(int(32), offset))
 		endif endif endif
 	image = format("%12b %s 000 %s 1100111", offset, base, dest)
 	action = {
 		if dest != 0 then R[dest] = PC + 4; endif;
-		let tgt_offset = coerce(int(31), offset) :: 0<0..0>;
+		let tgt_offset = coerce(int(32), offset);
 		NPC = NPC + tgt_offset + base;
 	}
 
