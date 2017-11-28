@@ -1,8 +1,8 @@
 /*
- *	MIPS IV Instruction Set
+ *	RISC-V Instruction Set
  *
  *	This file is part of GLISS
- *	Copyright (c) 2016, IRIT UPS.
+ *	Copyright (c) 2017, IRIT UPS.
  *
  *	GLISS is free software; you can redistribute it and/or modify
  *	it under the terms of the GNU General Public License as published by
@@ -71,6 +71,47 @@ mode reg_t (r: index) = r
 	image  = format ( "%5b", r )
 macro setR(d, v) = if d != 0 then R[d] = v; endif 
 
+mode freg_t (f: index) = f
+	num = f
+	syntax =
+		switch ( f ) {
+		case  0:	"f0"
+		case  1:	"f1"
+		case  2: 	"f2"
+		case  3: 	"f3"
+		case  4: 	"f4"
+		case  5: 	"f5"
+		case  6: 	"f6"
+		case  7: 	"f7"
+		case  8:	"f8"
+		case  9:	"f9"
+		case 10:	"f10"
+		case 11:	"f11"
+		case 12:	"f12"
+		case 13:	"f13"
+		case 14:	"f14"
+		case 15:	"f15"
+		case 16:	"f16"
+		case 17:	"f17"
+		case 18:	"f18"
+		case 19:	"f19"
+		case 20:	"f20"
+		case 21:	"f21"
+		case 22:	"f22"
+		case 23:	"f23"
+		case 24:	"f24"
+		case 25:	"f25"
+		case 26:	"f26"
+		case 27:	"f27"
+		case 28:	"f28"
+		case 29:	"f29"
+		case 30:	"f30"
+		case 31:	"f31"
+		}
+	image  = format ( "%5b", f )
+
+
+
 mode IMM16(n: half) = n
 	syntax = format("#%d", n)
 	image = format("%16b", n)
@@ -101,6 +142,7 @@ op allinstr =
 //	| all_dshift
 	| all_load
 	| all_stores
+	| all_floating
 
 op init ()
 	action = {
@@ -111,3 +153,4 @@ include "nmp/alu.nmp"
 include "nmp/control.nmp"
 include "nmp/special.nmp"
 include "nmp/mem.nmp"
+include "nmp/floatingpoint.nmp"
