@@ -1,0 +1,416 @@
+/*
+ *	RISC-V Instruction Set
+ *
+ *	This file is part of GLISS
+ *	Copyright (c) 2017, IRIT UPS.
+ *
+ *	GLISS is free software; you can redistribute it and/or modify
+ *	it under the terms of the GNU General Public License as published by
+ *	the Free Software Foundation; either version 2 of the License, or
+ *	(at your option) any later version.
+ *
+ *	GLISS is distributed in the hope that it will be useful,
+ *	but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *	GNU General Public License for more details.
+ *
+ *	You should have received a copy of the GNU General Public License
+ *	along with GLISS; if not, write to the Free Software
+ *	Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ */
+
+// Floating Point Operations
+op all_floating =
+	  flw
+	| fld
+	| fsw
+	| fsd
+	| fmuladds
+	| fmuladdd
+	| fmulsubs
+	| fmulsubd
+	| fnegmuladds
+	| fnegmuladdd
+	| fnegmulsubs
+	| fnegmulsubd
+	| fadds
+	| faddd
+	| fsubs
+	| fsubd
+	| fmuls
+	| fmuld
+	| fdivs
+	| fdivd
+	| fsqrts
+	| fsqrtd
+	| fsgnjs
+	| fsgnjd
+	| fminmaxs
+	| fminmaxd
+	| fcvts
+	| fcvtd
+	| fcmps
+	| fcmpd
+	| fclasss
+	| fclassd
+	| fcvt2s
+	| fcvt2d
+	| fcvt3d
+	| fmv
+	| fcvt3s
+	| fcvt4s
+	| fcvt4d
+	| fcvt5d
+	| fmv2
+	| fmv3
+
+// load and store
+op flw(offset: int(12), base: reg_t, dest: reg_t)
+	syntax = format("flw %s, %d(%s)", dest, offset, base)
+	image = format("%12b %s 010 %s 0000111", offset, base, dest)
+	action = {	
+		// empty, no simulation
+	}
+
+op fld(offset: int(12), base: reg_t, dest: reg_t)
+	syntax = format("fld %s, %d(%s)", dest, offset, base)
+	image = format("%12b %s 011 %s 0000111", offset, base, dest)
+	action = {	
+		// empty, no simulation
+	}
+
+op fsw(offset: int(12), src: reg_t, base: reg_t)
+	syntax = format("fsw %s, %d(%s)", src, offset, base)
+	image = format("%7b %s %s 010 %5b 0100111", offset<11..5>, src, base, offset<4..0>)
+	action = {	
+		// empty, no simulation
+	}
+
+op fsd(offset: int(12), src: reg_t, base: reg_t)
+	syntax = format("fsd %s, %d(%s)", src, offset, base)
+	image = format("%7b %s %s 011 %5b 0100111", offset<11..5>, src, base, offset<4..0>)
+	action = {	
+		// empty, no simulation
+	}
+
+// fused multiply add/sub
+op fmuladds(src3: reg_t, src2: reg_t, src1: reg_t, rm: card(3), dest: reg_t)
+	syntax = format("fmadd.s %s, %s, %s, %s", dest, src1, src2, src3)
+	image = format("%s 00 %s %s %3b %s 1000011", src3, src2, src1, rm, dest)
+	action = {	
+		// empty, no simulation
+	}
+
+op fmuladdd(src3: reg_t, src2: reg_t, src1: reg_t, rm: card(3), dest: reg_t)
+	syntax = format("fmadd.d %s, %s, %s, %s", dest, src1, src2, src3)
+	image = format("%s 01 %s %s %3b %s 1000011", src3, src2, src1, rm, dest)
+	action = {	
+		// empty, no simulation
+	}
+
+op fmulsubs(src3: reg_t, src2: reg_t, src1: reg_t, rm: card(3), dest: reg_t)
+	syntax = format("fmsub.s %s, %s, %s, %s", dest, src1, src2, src3)
+	image = format("%s 00 %s %s %3b %s 1000111", src3, src2, src1, rm, dest)
+	action = {	
+		// empty, no simulation
+	}
+
+op fmulsubd(src3: reg_t, src2: reg_t, src1: reg_t, rm: card(3), dest: reg_t)
+	syntax = format("fmsub.d %s, %s, %s, %s", dest, src1, src2, src3)
+	image = format("%s 01 %s %s %3b %s 1000111", src3, src2, src1, rm, dest)
+	action = {	
+		// empty, no simulation
+	}
+
+op fnegmuladds(src3: reg_t, src2: reg_t, src1: reg_t, rm: card(3), dest: reg_t)
+	syntax = format("fnmadd.s %s, %s, %s, %s", dest, src1, src2, src3)
+	image = format("%s 00 %s %s %3b %s 1001111", src3, src2, src1, rm, dest)
+	action = {	
+		// empty, no simulation
+	}
+
+op fnegmuladdd(src3: reg_t, src2: reg_t, src1: reg_t, rm: card(3), dest: reg_t)
+	syntax = format("fnmadd.d %s, %s, %s, %s", dest, src1, src2, src3)
+	image = format("%s 01 %s %s %3b %s 1001111", src3, src2, src1, rm, dest)
+	action = {	
+		// empty, no simulation
+	}
+
+op fnegmulsubs(src3: reg_t, src2: reg_t, src1: reg_t, rm: card(3), dest: reg_t)
+	syntax = format("fnmsub.s %s, %s, %s, %s", dest, src1, src2, src3)
+	image = format("%s 00 %s %s %3b %s 1001011", src3, src2, src1, rm, dest)
+	action = {	
+		// empty, no simulation
+	}
+
+op fnegmulsubd(src3: reg_t, src2: reg_t, src1: reg_t, rm: card(3), dest: reg_t)
+	syntax = format("fnmsub.d %s, %s, %s, %s", dest, src1, src2, src3)
+	image = format("%s 01 %s %s %3b %s 1001011", src3, src2, src1, rm, dest)
+	action = {	
+		// empty, no simulation
+	}
+
+// computational instructions
+op fadds(src2: reg_t, src1: reg_t, rm: card(3), dest: reg_t)
+	syntax = format("fadd.s %s, %s, %s", dest, src1, src2)
+	image = format("0000000 %s %s %3b %s 1010011", src2, src1, rm, dest)
+	action = {	
+		// empty, no simulation
+	}
+
+op faddd(src2: reg_t, src1: reg_t, rm: card(3), dest: reg_t)
+	syntax = format("fadd.d %s, %s, %s", dest, src1, src2)
+	image = format("0000001 %s %s %3b %s 1010011", src2, src1, rm, dest)
+	action = {	
+		// empty, no simulation
+	}
+
+op fsubs(src2: reg_t, src1: reg_t, rm: card(3), dest: reg_t)
+	syntax = format("fsub.s %s, %s, %s", dest, src1, src2)
+	image = format("0000100 %s %s %3b %s 1010011", src2, src1, rm, dest)
+	action = {	
+		// empty, no simulation
+	}
+
+op fsubd(src2: reg_t, src1: reg_t, rm: card(3), dest: reg_t)
+	syntax = format("fsub.d %s, %s, %s", dest, src1, src2)
+	image = format("0000101 %s %s %3b %s 1010011", src2, src1, rm, dest)
+	action = {	
+		// empty, no simulation
+	}
+
+op fmuls(src2: reg_t, src1: reg_t, rm: card(3), dest: reg_t)
+	syntax = format("fmul.s %s, %s, %s", dest, src1, src2)
+	image = format("0001000 %s %s %3b %s 1010011", src2, src1, rm, dest)
+	action = {	
+		// empty, no simulation
+	}
+
+op fmuld(src2: reg_t, src1: reg_t, rm: card(3), dest: reg_t)
+	syntax = format("fmul.d %s, %s, %s", dest, src1, src2)
+	image = format("0001001 %s %s %3b %s 1010011", src2, src1, rm, dest)
+	action = {	
+		// empty, no simulation
+	}
+
+op fdivs(src2: reg_t, src1: reg_t, rm: card(3), dest: reg_t)
+	syntax = format("fdiv.s %s, %s, %s", dest, src1, src2)
+	image = format("0001100 %s %s %3b %s 1010011", src2, src1, rm, dest)
+	action = {	
+		// empty, no simulation
+	}
+
+op fdivd(src2: reg_t, src1: reg_t, rm: card(3), dest: reg_t)
+	syntax = format("fdiv.d %s, %s, %s", dest, src1, src2)
+	image = format("0001101 %s %s %3b %s 1010011", src2, src1, rm, dest)
+	action = {	
+		// empty, no simulation
+	}
+
+op fsqrts(src: reg_t, rm: card(3), dest: reg_t)
+	syntax = format("fsqrt.s %s, %s", dest, src)
+	image = format("0101100 00000 %s %3b %s 1010011", src, rm, dest)
+	action = {	
+		// empty, no simulation
+	}
+
+op fsqrtd(src: reg_t, rm: card(3), dest: reg_t)
+	syntax = format("fsqrt.d %s, %s", dest, src)
+	image = format("0101101 00000 %s %3b %s 1010011", src, rm, dest)
+	action = {	
+		// empty, no simulation
+	}
+
+op fminmaxs(src2: reg_t, src1: reg_t, fminmax_type: card(3), dest: reg_t)
+	syntax = if fminmax_type == 0
+		then format("fmin.s %s, %s, %s", dest, src1, src2) else 
+		format("fmax.s %s, %s, %s", dest, src1, src2)
+		endif
+	image = format("0010100 %s %s %3b %s 1010011", src2, src1, fminmax_type, dest)
+	action = {	
+		// empty, no simulation
+	}
+
+op fminmaxd(src2: reg_t, src1: reg_t, fminmax_type: card(3), dest: reg_t)
+	syntax = if fminmax_type == 0
+		then format("fmin.d %s, %s, %s", dest, src1, src2) else 
+		format("fmax.d %s, %s, %s", dest, src1, src2)
+		endif
+	image = format("0010101 %s %s %3b %s 1010011", src2, src1, fminmax_type, dest)
+	action = {	
+		// empty, no simulation
+	}
+
+// conversion and move instructions
+op fsgnjs(src2: reg_t, src1: reg_t, fsgnj_type: card(3), dest: reg_t)
+	syntax = if fsgnj_type == 0
+		then format("fsgnj.s %s, %s, %s", dest, src1, src2) else if fsgnj_type == 1
+		then format("fsgnjn.s %s, %s, %s", dest, src1, src2)  else
+		format("fsgnjx.s %s, %s, %s", dest, src1, src2)
+		endif endif
+	image = format("0010000 %s %s %3b %s 1010011", src2, src1, fsgnj_type, dest)
+	action = {	
+		// empty, no simulation
+	}
+
+op fsgnjd(src2: reg_t, src1: reg_t, fsgnj_type: card(3), dest: reg_t)
+	syntax = if fsgnj_type == 0
+		then format("fsgnj.d %s, %s, %s", dest, src1, src2) else if fsgnj_type == 1
+		then format("fsgnjn.d %s, %s, %s", dest, src1, src2)  else
+		format("fsgnjx.d %s, %s, %s", dest, src1, src2)
+		endif endif
+	image = format("0010001 %s %s %3b %s 1010011", src2, src1, fsgnj_type, dest)
+	action = {	
+		// empty, no simulation
+	}
+
+op fcvts(fcvt_type: bool, src: reg_t, rm: card(3), dest: reg_t)
+	syntax = if fcvt_type == 0 
+		then format("fcvt.w.s %s, %s", dest, src) 
+		else format("fcvt.wu.s %s, %s", dest, src)
+		endif
+	image = format("1100000 0000 %1b %s %3b %s 1010011", fcvt_type, src, rm, dest)
+	action = {	
+		// empty, no simulation
+	}
+
+op fcvtd(fcvt_type: card(7), src: reg_t, rm: card(3), dest: reg_t)
+	syntax = if fcvt_type == 1
+		then format("fcvt.s.d %s, %s", dest, src) 
+		else format("fcvt.d.s %s, %s", dest, src)
+		endif
+	image = format("01000 %7b %s %3b %s 1010011", fcvt_type, src, rm, dest)
+	action = {	
+		// empty, no simulation
+	}
+
+op fcvt2s(fcvt_type: bool, src: reg_t, rm: card(3), dest: reg_t)
+	syntax =  if fcvt_type == 0 then
+		format("fcvt.s.w %s, %s", dest, src) else
+		format("fcvt.s.wu %s, %s", dest, src)
+		endif
+	image = format("1101000 0000 %1b %s %3b %s 1010011", fcvt_type, src, rm, dest)
+	action = {	
+		// empty, no simulation
+	}
+
+op fcvt2d(fcvt_type: bool, src: reg_t, rm: card(3), dest: reg_t)
+	syntax =  if fcvt_type == 0 then
+		format("fcvt.w.d %s, %s", dest, src) else
+		format("fcvt.wu.d %s, %s", dest, src)
+		endif
+	image = format("1100001 0000 %1b %s %3b %s 1010011", fcvt_type, src, rm, dest)
+	action = {	
+		// empty, no simulation
+	}
+
+op fcvt3d(fcvt_type: bool, src: reg_t, rm: card(3), dest: reg_t)
+	syntax =  if fcvt_type == 0 then
+		format("fcvt.d.w %s, %s", dest, src) else
+		format("fcvt.d.wu %s, %s", dest, src)
+		endif
+	image = format("1101001 0000 %1b %s %3b %s 1010011", fcvt_type, src, rm, dest)
+	action = {	
+		// empty, no simulation
+	}
+
+op fmv(src: reg_t, dest: reg_t)
+	syntax = format("fmv.w.x %s, %s", dest, src)
+	image = format("1111000 00000 %s 000 %s 1010011", src, dest)
+	action = {	
+		// empty, no simulation
+	}
+
+// compare instructions
+op fcmps(src2: reg_t, src1: reg_t, fcmp_type: card(3), dest: reg_t)
+	syntax = if fcmp_type == 0 
+		then format("fle.s %s, %s, %s", dest, src1, src2) else if fcmp_type == 1
+		then format("flt.s %s, %s, %s", dest, src1, src2)
+		else format("feq.s %s, %s, %s", dest, src1, src2)
+		endif endif
+	image = format("1010000 %s %s %3b %s 1010011", src2, src1, fcmp_type, dest)
+	action = {	
+		// empty, no simulation
+	}
+
+op fcmpd(src2: reg_t, src1: reg_t, fcmp_type: card(3), dest: reg_t)
+	syntax = if fcmp_type == 0 
+		then format("fle.d %s, %s, %s", dest, src1, src2) else if fcmp_type == 1
+		then format("flt.d %s, %s, %s", dest, src1, src2)
+		else format("feq.d %s, %s, %s", dest, src1, src2)
+		endif endif
+	image = format("1010001 %s %s %3b %s 1010011", src2, src1, fcmp_type, dest)
+	action = {	
+		// empty, no simulation
+	}
+
+// classification instructions
+op fclasss(src: reg_t, dest: reg_t)
+	syntax = format("fclass.s %s, %s", dest, src)
+	image = format("1110000 00000 %s 001 %s 1010011", src, dest)
+	action = {	
+		// empty, no simulation
+	}
+
+op fclassd(src: reg_t, dest: reg_t)
+	syntax = format("fclass.d %s, %s", dest, src)
+	image = format("1110001 00000 %s 001 %s 1010011", src, dest)
+	action = {	
+		// empty, no simulation
+	}
+
+// RV64F extension
+op fcvt3s(fcvt_type: bool, src: reg_t, rm: card(3), dest: reg_t)
+	syntax =  if fcvt_type == 2 then
+		format("fcvt.l.s %s, %s", dest, src) else
+		format("fcvt.lu.s %s, %s", dest, src)
+		endif
+	image = format("1100000 0001 %1b %s %3b %s 1010011", fcvt_type, src, rm, dest)
+	action = {	
+		// empty, no simulation
+	}
+
+op fcvt4s(fcvt_type: bool, src: reg_t, rm: card(3), dest: reg_t)
+	syntax =  if fcvt_type == 2 then
+		format("fcvt.s.l %s, %s", dest, src) else
+		format("fcvt.s.lu %s, %s", dest, src)
+		endif
+	image = format("1101000 0001 %1b %s %3b %s 1010011", fcvt_type, src, rm, dest)
+	action = {	
+		// empty, no simulation
+	}
+
+// RV64D extension
+op fcvt4d(fcvt_type: bool, src: reg_t, rm: card(3), dest: reg_t)
+	syntax =  if fcvt_type == 2 then
+		format("fcvt.l.d %s, %s", dest, src) else
+		format("fcvt.lu.d %s, %s", dest, src)
+		endif
+	image = format("1100001 0001 %1b %s %3b %s 1010011", fcvt_type, src, rm, dest)
+	action = {	
+		// empty, no simulation
+	}
+
+op fcvt5d(fcvt_type: bool, src: reg_t, rm: card(3), dest: reg_t)
+	syntax =  if fcvt_type == 2 then
+		format("fcvt.d.l %s, %s", dest, src) else
+		format("fcvt.d.lu %s, %s", dest, src)
+		endif
+	image = format("1101001 0001 %1b %s %3b %s 1010011", fcvt_type, src, rm, dest)
+	action = {	
+		// empty, no simulation
+	}
+
+op fmv2(src: reg_t, dest: reg_t)
+	syntax = format("fmv.x.d %s, %s", dest, src)
+	image = format("1110001 00000 %s 000 %s 1010011", src, dest)
+	action = {	
+		// empty, no simulation
+	}
+
+op fmv3(src: reg_t, dest: reg_t)
+	syntax = format("fmv.d.x %s, %s", dest, src)
+	image = format("1111001 00000 %s 000 %s 1010011", src, dest)
+	action = {	
+		// empty, no simulation
+	}
