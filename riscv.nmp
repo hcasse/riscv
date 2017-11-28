@@ -143,6 +143,7 @@ op allinstr =
 	| all_load
 	| all_stores
 	| all_floating
+	| rv64im
 
 op init ()
 	action = {
