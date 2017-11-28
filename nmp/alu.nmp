@@ -60,6 +60,23 @@ op all_muldiv =
 	| rem
 	| remu
 
+// RV64IM Extension
+op rv64im =
+	  addiw
+	| slliw
+	| srliw
+	| sraiw
+	| addw
+	| subw
+	| sllw
+	| srlw
+	| sraw
+	| mulw
+	| divw
+	| divuw
+	| remw
+	| remuw
+
 // addition + subtraction
 op add(src2: reg_t, src1: reg_t, dest: reg_t)
 	syntax = format("add %s, %s, %s", dest, src1, src2)
@@ -152,18 +169,18 @@ op sll(src2: reg_t, src1: reg_t, dest: reg_t)
 		R[dest] = temp;
 	}
 
-op slli(shamt: card(5), src: reg_t, dest: reg_t)
+op slli(shamt: card(6), src: reg_t, dest: reg_t)
 	syntax = format("slli %s, %s, %d", dest, src, shamt)
-	image  = format("0000000 %5b %s 001 %s 0010011", shamt, src, dest)
+	image  = format("000000 %6b %s 001 %s 0010011", shamt, src, dest)
 	action = {
 		let s = shamt;
 		let temp = R[src] << s;
 		R[dest] = temp;
 	}
 
-op srai(shamt: card(5), src: reg_t, dest: reg_t)
+op srai(shamt: card(6), src: reg_t, dest: reg_t)
 	syntax = format("srai %s, %s, %d", dest, src, shamt)
-	image  = format("0100000 %5b %s 101 %s 0010011", shamt, src, dest)
+	image  = format("010000 %6b %s 101 %s 0010011", shamt, src, dest)
 	action = {
 		let s = shamt;
 		let temp = coerce(int(32), R[src]) >> s;
@@ -188,9 +205,9 @@ op srl(src2: reg_t, src1: reg_t, dest: reg_t)
 		R[dest] = temp;
 	}
 
-op srli(shamt: card(5), src: reg_t, dest: reg_t)
+op srli(shamt: card(6), src: reg_t, dest: reg_t)
 	syntax = format("srli %s, %s, %d", dest, src, shamt)
-	image  = format("0000000 %5b %s 101 %s 0010011", shamt, src, dest)
+	image  = format("000000 %6b %s 101 %s 0010011", shamt, src, dest)
 	action = {
 		let s = shamt;
 		let temp = coerce(card(32), R[src]) >> s;
@@ -317,4 +334,103 @@ op remu(divisor: reg_t, dividend: reg_t, dest: reg_t)
 		then setR(dest, R[dividend]);
 		else setR(dest, coerce(card(32), R[dividend]) % coerce(card(32), R[divisor]));
 		endif;
-	}  
+	}
+
+// RV64IM Extension
+op addiw(imm: int(12), src: reg_t, dest: reg_t)
+	syntax = format("addiw %s, %s, %l", dest, src, imm)
+	image = format("%12b %s 000 %s 0011011", imm, src, dest)
+	action = {
+		// empty, no simulation
+	}
+
+op slliw(shamt: card(5), src: reg_t, dest: reg_t)
+	syntax = format("slliw %s, %s, %l", dest, src, shamt)
+	image = format("0000000 %5b %s 001 %s 0011011", shamt, src, dest)
+	action = {
+		// empty, no simulation
+	}
+
+op srliw(shamt: card(5), src: reg_t, dest: reg_t)
+	syntax = format("srliw %s, %s, %l", dest, src, shamt)
+	image = format("0000000 %5b %s 101 %s 0011011", shamt, src, dest)
+	action = {
+		// empty, no simulation
+	}
+
+op sraiw(shamt: card(5), src: reg_t, dest: reg_t)
+	syntax = format("sraiw %s, %s, %l", dest, src, shamt)
+	image = format("0100000 %5b %s 101 %s 0011011", shamt, src, dest)
+	action = {
+		// empty, no simulation
+	}
+
+op addw(src2: reg_t, src1: reg_t, dest: reg_t)
+	syntax = format("sllw %s, %s, %s", dest, src1, src2)
+	image = format("0000000 %s %s 000 %s 0111011", src2, src1, dest)
+	action = {
+		// empty, no simulation
+	}
+
+op subw(src2: reg_t, src1: reg_t, dest: reg_t)
+	syntax = format("sllw %s, %s, %s", dest, src1, src2)
+	image = format("0100000 %s %s 000 %s 0111011", src2, src1, dest)
+	action = {
+		// empty, no simulation
+	}
+
+op sllw(src2: reg_t, src1: reg_t, dest: reg_t)
+	syntax = format("sllw %s, %s, %s", dest, src1, src2)
+	image = format("0000000 %s %s 001 %s 0111011", src2, src1, dest)
+	action = {
+		// empty, no simulation
+	}
+
+op srlw(src2: reg_t, src1: reg_t, dest: reg_t)
+	syntax = format("srlw %s, %s, %s", dest, src1, src2)
+	image = format("0000000 %s %s 101 %s 0111011", src2, src1, dest)
+	action = {
+		// empty, no simulation
+	}
+
+op sraw(src2: reg_t, src1: reg_t, dest: reg_t)
+	syntax = format("sraw %s, %s, %s", dest, src1, src2)
+	image = format("0100000 %s %s 101 %s 0111011", src2, src1, dest)
+	action = {
+		// empty, no simulation
+	}
+
+op mulw(multiplier: reg_t, multiplicand: reg_t, dest: reg_t)
+	syntax = format("mulw %s, %s, %s", dest, multiplicand, multiplier)
+	image = format("0000001 %s %s 000 %s 0111011", multiplicand, multiplier, dest)
+	action = {
+		// empty, no simulation
+	} 
+
+op divw(divisor: reg_t, dividend: reg_t, dest: reg_t)
+	syntax = format("divw %s, %s, %s", dest, dividend, divisor)
+	image = format("0000001 %s %s 100 %s 0111011", divisor, dividend, dest)
+	action = {
+		// empty, no simulation
+	} 
+
+op divuw(divisor: reg_t, dividend: reg_t, dest: reg_t)
+	syntax = format("divuw %s, %s, %s", dest, dividend, divisor)
+	image = format("0000001 %s %s 101 %s 0111011", divisor, dividend, dest)
+	action = {
+		// empty, no simulation
+	}
+
+op remw(divisor: reg_t, dividend: reg_t, dest: reg_t)
+	syntax = format("remw %s, %s, %s", dest, dividend, divisor)
+	image = format("0000001 %s %s 110 %s 0111011", divisor, dividend, dest)
+	action = {
+		// empty, no simulation
+	}
+
+op remuw(divisor: reg_t, dividend: reg_t, dest: reg_t)
+	syntax = format("remuw %s, %s, %s", dest, dividend, divisor)
+	image = format("0000001 %s %s 111 %s 0111011", divisor, dividend, dest)
+	action = {
+		// empty, no simulation
+	}
