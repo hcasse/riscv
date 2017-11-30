@@ -22,6 +22,12 @@
 op all_special =
 	  fence
 	| syscall
+	| rcmc1
+	| rcmc2
+	| rcmc3
+	| rcmc4
+	| rcmc5
+	| rcmc6
 
 
 // special instruction
@@ -50,4 +56,53 @@ op syscall(srcdest: card(12), source: reg_t, funct: card(3), dest: reg_t)
 		then SignalException(BreakPoint);
 		else SignalException(Trap);
 		endif; endif;
+	}
+
+// RC/MC custom instructions
+// remove these lines when not working with the RC/MC architecture
+op rcmc1(src2: reg_t, src1: reg_t)
+	syntax = format("rcmc-s %s, %s", src1, src2)
+	image  = format("0000000 %s %s 000 00000 1101011", src2, src1)
+	action = {
+		// empty, no simulation
+	}
+
+op rcmc2(offset: int(12), src: reg_t, dest: reg_t)
+	tgt_offset = coerce(int(13), offset :: 0<0..0>)
+	syntax = format("rcmc-r %s, %s, %l", dest, src, __IADDR + tgt_offset)
+	image  = format("%12b %s 100 %s 1101011", offset, src, dest)
+	action = {
+		// empty, no simulation
+	}
+
+op rcmc3(offset: int(12), src: reg_t, dest: reg_t)
+	tgt_offset = coerce(int(13), offset :: 0<0..0>)
+	syntax = format("rcmc-c %s, %s, %l", dest, src, __IADDR + tgt_offset)
+	image  = format("%12b %s 001 %s 1101011", offset, src, dest)
+	action = {
+		// empty, no simulation
+	}
+
+op rcmc4(offset: int(12), src: reg_t, dest: reg_t)
+	tgt_offset = coerce(int(13), offset :: 0<0..0>)
+	syntax = format("rcmc-p %s, %s, %l", dest, src, __IADDR + tgt_offset)
+	image  = format("%12b %s 101 %s 1101011", offset, src, dest)
+	action = {
+		// empty, no simulation
+	}
+
+op rcmc5(offset: int(12), src: reg_t, dest: reg_t)
+	tgt_offset = coerce(int(13), offset :: 0<0..0>)
+	syntax = format("rcmc-a %s, %s, %l", dest, src, __IADDR + tgt_offset)
+	image  = format("%12b %s 111 %s 1101011", offset, src, dest)
+	action = {
+		// empty, no simulation
+	}
+
+op rcmc6(offset: int(12), src: reg_t, dest: reg_t)
+	tgt_offset = coerce(int(13), offset :: 0<0..0>)
+	syntax = format("rcmc-b %s, %s, %l", dest, src, __IADDR + tgt_offset)
+	image  = format("%12b %s 110 %s 1101011", offset, src, dest)
+	action = {
+		// empty, no simulation
 	}
