@@ -143,6 +143,7 @@ op allinstr =
 	| all_load
 	| all_stores
 	| all_floating
+	| all_atomic
 	| rv64im
 
 op init ()
