@@ -123,15 +123,15 @@ op bgeu(src2: reg_t, src1: reg_t, offset: int(12))
 	}
 
 op jal(offset: int(20), dest: reg_t)
-	tgt_offset = coerce(int(32), offset)
+	tgt_offset = coerce(int(32), offset :: 0<0..0>)
 	syntax = 
 		if dest == 0
-		then format("j %l", __IADDR + (coerce(int(32), offset)))
+		then format("j %l", __IADDR + tgt_offset)
 		else if dest == 1
-		then format("jal %l", __IADDR + (coerce(int(32), offset)))
-		else format("jal %s, %l", dest, __IADDR + (coerce(int(32), offset)))
+		then format("jal %l", __IADDR + tgt_offset)
+		else format("jal %s, %l", dest, __IADDR + tgt_offset)
 		endif endif
-	image = format("%1b %10b %1b %8b %s 1101111", offset<20..20>, offset<10..1>, offset<11..11>, offset<19..12>, dest)
+	image = format("%1b %10b %1b %8b %s 1101111", offset<19..19>, offset<9..0>, offset<10..10>, offset<18..11>, dest)
 	action = {
 		if dest != 0 then R[dest] = PC + 4; endif;
 		NPC = NPC + tgt_offset;
