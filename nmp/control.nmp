@@ -151,6 +151,6 @@ op jalr(offset: int(12), base: reg_t, dest: reg_t)
 	action = {
 		if dest != 0 then R[dest] = PC + 4; endif;
 		let tgt_offset = coerce(int(32), offset);
-		NPC = NPC + tgt_offset + base;
+		NPC = NPC + tgt_offset + R[base];
 	}
 
