@@ -21,7 +21,14 @@
 
 op all_special =
 	  fence
-	| syscall
+	| ecall
+	| ebreak
+	| csrrw
+	| csrrs
+	| csrrc
+	| csrrwi
+	| csrrsi
+	| csrrci
 	| rcmc1
 	| rcmc2
 	| rcmc3
@@ -41,21 +48,60 @@ op fence(predecessor: card(4), successor: card(4), ignore1: card(4), ignore2: re
 
 // because syscalls and csr instructions share same opcode, they are all encoded here
 // at the csr instructions, only rough differentiation between csr and csri
-op syscall(srcdest: card(12), source: reg_t, funct: card(3), dest: reg_t) 
-	syntax = 
-		if funct == 0 && srcdest == 0
-		then "ecall" else if funct == 0 && srcdest == 1
-		then "ebreak" else if funct > 3
-		then format("csri %s, %s %l", dest, source, srcdest)
-		else format("csr %s, %s %l", dest, source, srcdest)
-		endif endif endif
-	image  = format("%12b %s %3b %s 1110011", srcdest, source, funct, dest)
+op ecall() 
+	syntax = "ecall"
+	image  = "000000000000 00000 000 00000 1110011"
 	action = {
-		if funct == 0 && srcdest == 0
-		then SignalException(SystemCall); else if funct == 0 && srcdest == 1
-		then SignalException(BreakPoint);
-		else SignalException(Trap);
-		endif; endif;
+		SignalException(SystemCall); 
+	}
+
+op ebreak() 
+	syntax = "ebreak"
+	image  = "000000000001 00000 000 00000 1110011"
+	action = {
+		SignalException(BreakPoint); 
+	}
+
+op csrrw(srcdest: card(12), source: reg_t, dest: reg_t) 
+	syntax = format("csrrw %s, %d, %s", dest, srcdest, source)
+	image  = format("%12b %s 001 %s 1110011", srcdest, source, dest)
+	action = {
+		SignalException(Trap);
+	}
+
+op csrrs(srcdest: card(12), source: reg_t, dest: reg_t) 
+	syntax = format("csrrs %s, %d, %s", dest, srcdest, source)
+	image  = format("%12b %s 010 %s 1110011", srcdest, source, dest)
+	action = {
+		SignalException(Trap);
+	}
+
+op csrrc(srcdest: card(12), source: reg_t, dest: reg_t) 
+	syntax = format("csrrc %s, %d, %s", dest, srcdest, source)
+	image  = format("%12b %s 011 %s 1110011", srcdest, source, dest)
+	action = {
+		SignalException(Trap);
+	}
+
+op csrrwi(srcdest: card(12), zimm: card(5), dest: reg_t) 
+	syntax = format("csrrwi %s, %d, %d", dest, srcdest, zimm)
+	image  = format("%12b %5b 101 %s 1110011", srcdest, zimm, dest)
+	action = {
+		SignalException(Trap);
+	}
+
+op csrrsi(srcdest: card(12), zimm: card(5), dest: reg_t) 
+	syntax = format("csrrsi %s, %d, %d", dest, srcdest, zimm)
+	image  = format("%12b %5b 110 %s 1110011", srcdest, zimm, dest)
+	action = {
+		SignalException(Trap);
+	}
+
+op csrrci(srcdest: card(12), zimm: card(5), dest: reg_t) 
+	syntax = format("csrrci %s, %d, %d", dest, srcdest, zimm)
+	image  = format("%12b %5b 111 %s 1110011", srcdest, zimm, dest)
+	action = {
+		SignalException(Trap);
 	}
 
 // RC/MC custom instructions
